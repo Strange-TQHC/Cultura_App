@@ -1,33 +1,70 @@
 import 'package:flutter/material.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(const CulturaApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class CulturaApp extends StatelessWidget {
+  const CulturaApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Cultura',
-      home: MyHomePage(),
+      title: 'CULTURA',
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        primarySwatch: Colors.teal,
+      ),
+      home: const HomeScreen(),
     );
   }
 }
 
-class MyHomePage extends StatelessWidget {
+class HomeScreen extends StatelessWidget {
+  const HomeScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: Text('Cultura'),
+        title: const Text('CULTURA'),
+        centerTitle: true,
       ),
-      body: Center(
-          child: const Text('Initial Setup'),
+      body: Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const Text(
+              'Explore Cultures Around You',
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+              ),
+              textAlign: TextAlign.center,
+            ),
+
+            const SizedBox(height: 40),
+
+            ElevatedButton(
+              onPressed: () {
+                // TODO: Navigate to Login / Signup
+              },
+              child: const Text('Login / Signup'),
+            ),
+
+            const SizedBox(height: 20),
+
+            OutlinedButton(
+              onPressed: () {
+                // TODO: Continue as Guest
+              },
+              child: const Text('Continue as Guest'),
+            ),
+          ],
         ),
+      ),
     );
   }
 }

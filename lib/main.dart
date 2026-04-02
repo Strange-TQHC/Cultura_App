@@ -120,7 +120,12 @@ class LoginScreen extends StatelessWidget {
             const SizedBox(height: 30),
             ElevatedButton(
               onPressed: () {
-                // TODO: login logic
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const PostLoginScreen(),
+                  ),
+                );
               },
               child: const Text('Login'),
             ),
@@ -275,9 +280,69 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
                 print("Current Location: ${currentLocationController.text}");
                 print("Permanent Location: ${permanentLocationController.text}");
                 print("Food Preferences: ${foodPreferenceController.text}");
+
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const PostLoginScreen(),
+                  ),
+                );
               },
               child: const Text('Finish'),
             )
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+////////////////////////////////////////////////////////////
+/// POST LOGIN SCREEN (TEMPORARY)
+////////////////////////////////////////////////////////////
+
+class PostLoginScreen extends StatelessWidget {
+  const PostLoginScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('CULTURA'),
+        automaticallyImplyLeading: false,
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Text(
+              'Welcome to CULTURA',
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+
+            const SizedBox(height: 20),
+
+            const Text(
+              'You are now logged in.',
+            ),
+
+            const SizedBox(height: 40),
+
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const HomeScreen(),
+                  ),
+                      (route) => false,
+                );
+              },
+              child: const Text('Logout'),
+            ),
           ],
         ),
       ),

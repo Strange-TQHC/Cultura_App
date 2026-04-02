@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:geocoding/geocoding.dart';
 
 void main() {
   runApp(const CulturaApp());
@@ -121,12 +122,12 @@ class LoginScreen extends StatelessWidget {
             const SizedBox(height: 30),
             ElevatedButton(
               onPressed: () {
-                Navigator.pushReplacement(
+                /* Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(
                     builder: (context) => const PostLoginScreen(),
                   ),
-                );
+                ); */
               },
               child: const Text('Login'),
             ),
@@ -285,7 +286,9 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
                 Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => const PostLoginScreen(),
+                    builder: (context) => PostLoginScreen(
+                      permanentLocation: permanentLocationController.text,
+                    ),
                   ),
                 );
               },
@@ -299,60 +302,59 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
 }
 
 ////////////////////////////////////////////////////////////
-/// POST LOGIN SCREEN (UPDATED WITH LOCATION)
+/// POST LOGIN SCREEN WITH MODE DETECTION
 ////////////////////////////////////////////////////////////
 
 class PostLoginScreen extends StatefulWidget {
-  const PostLoginScreen({super.key});
+  final String permanentLocation;
+
+  const PostLoginScreen({super.key, required this.permanentLocation});
 
   @override
   State<PostLoginScreen> createState() => _PostLoginScreenState();
 }
 
 class _PostLoginScreenState extends State<PostLoginScreen> {
-  String locationText = "Fetching location...";
+  String statusText = "Checking location...";
+  Position? currentPosition;
 
   @override
   void initState() {
     super.initState();
-    getLocation();
+    determineMode();
   }
 
-  Future<void> getLocation() async {
-    bool serviceEnabled;
-    LocationPermission permission;
-
-    // Check if location service is enabled
-    serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) {
-      setState(() {
-        locationText = "Location services are disabled";
-      });
-      return;
-    }
-
-    // Check permission
-    permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-    }
-
-    if (permission == LocationPermission.deniedForever) {
-      setState(() {
-        locationText = "Permission permanently denied";
-      });
-      return;
-    }
-
-    // Get position
-    Position position = await Geolocator.getCurrentPosition(
+  Future<void> determineMode() async {
+    // Step 1: Get current GPS
+    currentPosition = await Geolocator.getCurrentPosition(
       desiredAccuracy: LocationAccuracy.high,
     );
 
-    setState(() {
-      locationText =
-      "Lat: ${position.latitude}, Lng: ${position.longitude}";
-    });
+    // Step 2: Convert permanent location → coordinates
+    List<Location> locations =
+    await locationFromAddress(widget.permanentLocation);
+
+    double permLat = locations[0].latitude;
+    double permLng = locations[0].longitude;
+
+    // Step 3: Calculate distance
+    double distance = Geolocator.distanceBetween(
+      currentPosition!.latitude,
+      currentPosition!.longitude,
+      permLat,
+      permLng,
+    );
+
+    // Step 4: Decide mode (radius = 50km)
+    if (distance < 50000) {
+      setState(() {
+        statusText = "You're at home (Local Resident Mode)";
+      });
+    } else {
+      setState(() {
+        statusText = "You're traveling (Traveler Mode)";
+      });
+    }
   }
 
   @override
@@ -366,20 +368,17 @@ class _PostLoginScreenState extends State<PostLoginScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Text(
-              'Welcome to CULTURA',
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+            Text(
+              statusText,
+              style: const TextStyle(fontSize: 18),
+              textAlign: TextAlign.center,
             ),
-
-            const SizedBox(height: 20),
-
-            Text(locationText),
 
             const SizedBox(height: 40),
 
             ElevatedButton(
-              onPressed: getLocation,
-              child: const Text('Refresh Location'),
+              onPressed: determineMode,
+              child: const Text('Recheck'),
             ),
 
             const SizedBox(height: 20),

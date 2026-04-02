@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 
 void main() {
   runApp(const CulturaApp());
@@ -298,11 +299,61 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
 }
 
 ////////////////////////////////////////////////////////////
-/// POST LOGIN SCREEN (TEMPORARY)
+/// POST LOGIN SCREEN (UPDATED WITH LOCATION)
 ////////////////////////////////////////////////////////////
 
-class PostLoginScreen extends StatelessWidget {
+class PostLoginScreen extends StatefulWidget {
   const PostLoginScreen({super.key});
+
+  @override
+  State<PostLoginScreen> createState() => _PostLoginScreenState();
+}
+
+class _PostLoginScreenState extends State<PostLoginScreen> {
+  String locationText = "Fetching location...";
+
+  @override
+  void initState() {
+    super.initState();
+    getLocation();
+  }
+
+  Future<void> getLocation() async {
+    bool serviceEnabled;
+    LocationPermission permission;
+
+    // Check if location service is enabled
+    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      setState(() {
+        locationText = "Location services are disabled";
+      });
+      return;
+    }
+
+    // Check permission
+    permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      setState(() {
+        locationText = "Permission permanently denied";
+      });
+      return;
+    }
+
+    // Get position
+    Position position = await Geolocator.getCurrentPosition(
+      desiredAccuracy: LocationAccuracy.high,
+    );
+
+    setState(() {
+      locationText =
+      "Lat: ${position.latitude}, Lng: ${position.longitude}";
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -317,19 +368,21 @@ class PostLoginScreen extends StatelessWidget {
           children: [
             const Text(
               'Welcome to CULTURA',
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
             ),
 
             const SizedBox(height: 20),
 
-            const Text(
-              'You are now logged in.',
-            ),
+            Text(locationText),
 
             const SizedBox(height: 40),
+
+            ElevatedButton(
+              onPressed: getLocation,
+              child: const Text('Refresh Location'),
+            ),
+
+            const SizedBox(height: 20),
 
             ElevatedButton(
               onPressed: () {

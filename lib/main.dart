@@ -132,11 +132,19 @@ class LoginScreen extends StatelessWidget {
 }
 
 ////////////////////////////////////////////////////////////
-/// SIGNUP SCREEN
+/// SIGNUP SCREEN (UPDATED)
 ////////////////////////////////////////////////////////////
 
-class SignupScreen extends StatelessWidget {
+class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
+
+  @override
+  State<SignupScreen> createState() => _SignupScreenState();
+}
+
+class _SignupScreenState extends State<SignupScreen> {
+  final emailController = TextEditingController();
+  final passwordController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -149,12 +157,14 @@ class SignupScreen extends StatelessWidget {
         child: Column(
           children: [
             TextField(
+              controller: emailController,
               decoration: const InputDecoration(
                 labelText: 'Email',
               ),
             ),
             const SizedBox(height: 20),
             TextField(
+              controller: passwordController,
               obscureText: true,
               decoration: const InputDecoration(
                 labelText: 'Password',
@@ -163,10 +173,111 @@ class SignupScreen extends StatelessWidget {
             const SizedBox(height: 30),
             ElevatedButton(
               onPressed: () {
-                // TODO: signup logic
+                if (emailController.text.isNotEmpty &&
+                    passwordController.text.isNotEmpty) {
+
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => UserDetailsScreen(
+                        email: emailController.text,
+                      ),
+                    ),
+                  );
+                }
               },
-              child: const Text('Create Account'),
+              child: const Text('Next'),
             ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+////////////////////////////////////////////////////////////
+/// USER DETAILS SCREEN
+////////////////////////////////////////////////////////////
+
+class UserDetailsScreen extends StatefulWidget {
+  final String email;
+
+  const UserDetailsScreen({super.key, required this.email});
+
+  @override
+  State<UserDetailsScreen> createState() => _UserDetailsScreenState();
+}
+
+class _UserDetailsScreenState extends State<UserDetailsScreen> {
+  final nameController = TextEditingController();
+  final ageController = TextEditingController();
+  final genderController = TextEditingController();
+  final currentLocationController = TextEditingController();
+  final permanentLocationController = TextEditingController();
+  final foodPreferenceController = TextEditingController();
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Your Details'),
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          children: [
+            Text("Email: ${widget.email}"),
+
+            const SizedBox(height: 20),
+
+            TextField(
+              controller: nameController,
+              decoration: const InputDecoration(labelText: 'Name'),
+            ),
+            const SizedBox(height: 15),
+
+            TextField(
+              controller: ageController,
+              decoration: const InputDecoration(labelText: 'Age'),
+            ),
+            const SizedBox(height: 15),
+
+            TextField(
+              controller: genderController,
+              decoration: const InputDecoration(labelText: 'Gender'),
+            ),
+            const SizedBox(height: 15),
+
+            TextField(
+              controller: currentLocationController,
+              decoration: const InputDecoration(labelText: 'Current Location'),
+            ),
+            const SizedBox(height: 15),
+
+            TextField(
+              controller: permanentLocationController,
+              decoration: const InputDecoration(labelText: 'Permanent Location'),
+            ),
+            const SizedBox(height: 15),
+
+            TextField(
+              controller: foodPreferenceController,
+              decoration: const InputDecoration(labelText: 'Food Preferences'),
+            ),
+
+            const SizedBox(height: 30),
+
+            ElevatedButton(
+              onPressed: () {
+                print("Name: ${nameController.text}");
+                print("Age: ${ageController.text}");
+                print("Gender: ${genderController.text}");
+                print("Current Location: ${currentLocationController.text}");
+                print("Permanent Location: ${permanentLocationController.text}");
+                print("Food Preferences: ${foodPreferenceController.text}");
+              },
+              child: const Text('Finish'),
+            )
           ],
         ),
       ),

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 
 void main() {
   runApp(const CulturaApp());
@@ -275,22 +277,46 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
             const SizedBox(height: 30),
 
             ElevatedButton(
-              onPressed: () {
-                print("Name: ${nameController.text}");
-                print("Age: ${ageController.text}");
-                print("Gender: ${genderController.text}");
-                print("Current Location: ${currentLocationController.text}");
-                print("Permanent Location: ${permanentLocationController.text}");
-                print("Food Preferences: ${foodPreferenceController.text}");
+              onPressed: () async {
+                final url = Uri.parse('http://10.0.2.2:8000/api/signup/');
 
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => PostLoginScreen(
-                      permanentLocation: permanentLocationController.text,
-                    ),
-                  ),
+                final response = await http.post(
+                  url,
+                  headers: {
+                    'Content-Type': 'application/json',
+                  },
+                  body: jsonEncode({
+                    "email": widget.email,
+                    "password": "123456", // temporary (we’ll fix later)
+                    "name": nameController.text,
+                    "age": int.tryParse(ageController.text) ?? 0,
+                    "gender": genderController.text,
+                    "current_location": currentLocationController.text,
+                    "permanent_location": permanentLocationController.text,
+                    "food_preferences": foodPreferenceController.text,
+                  }),
                 );
+
+                if (response.statusCode == 200) {
+                  // SUCCESS
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => PostLoginScreen(
+                        permanentLocation: permanentLocationController.text,
+                      ),
+                    ),
+                  );
+                } else {
+                  // ERROR
+                  print(response.body);
+
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Signup failed'),
+                    ),
+                  );
+                }
               },
               child: const Text('Finish'),
             )
@@ -345,15 +371,21 @@ class _PostLoginScreenState extends State<PostLoginScreen> {
       permLng,
     );
 
-    // Step 4: Decide mode (radius = 50km)
+    // Step 4: Navigate based on result
     if (distance < 50000) {
-      setState(() {
-        statusText = "You're at home (Local Resident Mode)";
-      });
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const LocalHomeScreen(),
+        ),
+      );
     } else {
-      setState(() {
-        statusText = "You're traveling (Traveler Mode)";
-      });
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const TravelerHomeScreen(),
+        ),
+      );
     }
   }
 
@@ -364,37 +396,105 @@ class _PostLoginScreenState extends State<PostLoginScreen> {
         title: const Text('CULTURA'),
         automaticallyImplyLeading: false,
       ),
-      body: Center(
+      body: const Center(
+        child: CircularProgressIndicator(),
+      ),
+    );
+  }
+}
+
+
+////////////////////////////////////////////////////////////
+/// LOCAL RESIDENT HOME
+////////////////////////////////////////////////////////////
+
+class LocalHomeScreen extends StatelessWidget {
+  const LocalHomeScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('CULTURA - Home'),
+        automaticallyImplyLeading: false,
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(20.0),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(
-              statusText,
-              style: const TextStyle(fontSize: 18),
-              textAlign: TextAlign.center,
+            const Text(
+              "You're at home",
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
+
+            const SizedBox(height: 20),
+
+            const Text("Current Location: (will show later)"),
+            const SizedBox(height: 20),
+            const Text("Weather: (coming soon)"),
 
             const SizedBox(height: 40),
 
             ElevatedButton(
-              onPressed: determineMode,
-              child: const Text('Recheck'),
+              onPressed: () {},
+              child: const Text('Explore Your Hometown'),
             ),
 
             const SizedBox(height: 20),
 
             ElevatedButton(
-              onPressed: () {
-                Navigator.pushAndRemoveUntil(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const HomeScreen(),
-                  ),
-                      (route) => false,
-                );
-              },
-              child: const Text('Logout'),
+              onPressed: () {},
+              child: const Text('Profile'),
             ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+
+////////////////////////////////////////////////////////////
+/// TRAVELER MODE HOME
+////////////////////////////////////////////////////////////
+
+class TravelerHomeScreen extends StatelessWidget {
+  const TravelerHomeScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('CULTURA - Traveler'),
+        automaticallyImplyLeading: false,
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const Text(
+              "You're traveling",
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+
+            const SizedBox(height: 20),
+
+            const Text("Location / Time / Weather Card (coming soon)"),
+
+            const SizedBox(height: 30),
+
+            const Text("Nearby Highlights (Map later)"),
+            const SizedBox(height: 20),
+
+            const Text("History & Culture (AI later)"),
+            const SizedBox(height: 20),
+
+            const Text("Food & Etiquette"),
+            const SizedBox(height: 20),
+
+            const Text("Language & Folklores"),
           ],
         ),
       ),

@@ -3,6 +3,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   runApp(const CulturaApp());
@@ -19,7 +20,7 @@ class CulturaApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.teal,
       ),
-      home: const HomeScreen(),
+      home: const SplashCheckScreen(),
     );
   }
 }
@@ -150,6 +151,11 @@ class LoginScreen extends StatefulWidget {
                 final data = jsonDecode(response.body);
 
                 if (response.statusCode == 200) {
+                  final prefs = await SharedPreferences.getInstance();
+
+                  await prefs.setString('token', data['token']);
+                  await prefs.setString('permanent_location', data['permanent_location']);
+
                   Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(
@@ -533,6 +539,57 @@ class TravelerHomeScreen extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+////////////////////////////////////////////////////////////
+/// SPLASH CHECK SCREEN (AUTO LOGIN)
+////////////////////////////////////////////////////////////
+
+class SplashCheckScreen extends StatefulWidget {
+  const SplashCheckScreen({super.key});
+
+  @override
+  State<SplashCheckScreen> createState() => _SplashCheckScreenState();
+}
+
+class _SplashCheckScreenState extends State<SplashCheckScreen> {
+
+  @override
+  void initState() {
+    super.initState();
+    checkLogin();
+  }
+
+  Future<void> checkLogin() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token');
+    final permanentLocation = prefs.getString('permanent_location');
+
+    if (token != null && permanentLocation != null) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => PostLoginScreen(
+            permanentLocation: permanentLocation,
+          ),
+        ),
+      );
+    } else {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const HomeScreen(),
+        ),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return const Scaffold(
+      body: Center(child: CircularProgressIndicator()),
     );
   }
 }

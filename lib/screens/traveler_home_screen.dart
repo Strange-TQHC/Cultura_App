@@ -65,11 +65,51 @@ class _TravelerHomeScreenState extends State<TravelerHomeScreen> {
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 10),
-                  MapView(
-                    lat: lat!,
-                    lon: lon!,
-                    places: places,
-                  )
+
+                  // MAP
+                  SizedBox(
+                    height: 200,
+                    child: MapView(
+                      lat: lat!,
+                      lon: lon!,
+                      places: places,
+                    ),
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  // LIST
+                  SizedBox(
+                    height: 120,
+                    child: ListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: places.length,
+                      itemBuilder: (context, index) {
+                        final place = places[index];
+
+                        return Card(
+                          margin: const EdgeInsets.symmetric(horizontal: 8),
+                          child: Container(
+                            width: 140,
+                            padding: const EdgeInsets.all(10),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Icon(Icons.place, color: Colors.blue),
+                                const SizedBox(height: 10),
+                                Text(
+                                  place['name'],
+                                  textAlign: TextAlign.center,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
                 ],
               ),
             ),

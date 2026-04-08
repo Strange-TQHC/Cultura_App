@@ -5,6 +5,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'screens/local_home_screen.dart';
+import 'screens/traveler_home_screen.dart';
 
 void main() {
   runApp(const CulturaApp());
@@ -440,70 +441,6 @@ class _PostLoginScreenState extends State<PostLoginScreen> {
       ),
       body: const Center(
         child: CircularProgressIndicator(),
-      ),
-    );
-  }
-}
-
-////////////////////////////////////////////////////////////
-/// TRAVELER MODE HOME
-////////////////////////////////////////////////////////////
-
-class TravelerHomeScreen extends StatelessWidget {
-  const TravelerHomeScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('CULTURA - Traveler'),
-        automaticallyImplyLeading: false,
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const Text(
-              "You're traveling",
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
-
-            const SizedBox(height: 20),
-
-            const Text("Location / Time / Weather Card (coming soon)"),
-
-            const SizedBox(height: 30),
-
-            const Text("Nearby Highlights (Map later)"),
-            const SizedBox(height: 20),
-
-            const Text("History & Culture (AI later)"),
-            const SizedBox(height: 20),
-
-            const Text("Food & Etiquette"),
-            const SizedBox(height: 20),
-
-            const Text("Language & Folklores"),
-
-            ElevatedButton(
-              onPressed: () async {
-                final prefs = await SharedPreferences.getInstance();
-                final token = prefs.getString('token');
-
-                final response = await http.get(
-                  Uri.parse('http://10.0.2.2:8000/api/protected/'),
-                  headers: {
-                    'Authorization': 'Token $token',
-                  },
-                );
-
-                print(response.body);
-              },
-              child: const Text('Test Protected API'),
-            ),
-          ],
-        ),
       ),
     );
   }

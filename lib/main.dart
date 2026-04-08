@@ -444,13 +444,42 @@ class _PostLoginScreenState extends State<PostLoginScreen> {
   }
 }
 
-
 ////////////////////////////////////////////////////////////
-/// LOCAL RESIDENT HOME
+/// LOCAL RESIDENT HOME (UPDATED)
 ////////////////////////////////////////////////////////////
 
-class LocalHomeScreen extends StatelessWidget {
+class LocalHomeScreen extends StatefulWidget {
   const LocalHomeScreen({super.key});
+
+  @override
+  State<LocalHomeScreen> createState() => _LocalHomeScreenState();
+}
+
+class _LocalHomeScreenState extends State<LocalHomeScreen> {
+  String locationText = "Fetching location...";
+  String weatherText = "Fetching weather...";
+
+  @override
+  void initState() {
+    super.initState();
+    getLocation();
+  }
+
+  Future<void> getLocation() async {
+    Position position = await Geolocator.getCurrentPosition(
+      desiredAccuracy: LocationAccuracy.high,
+    );
+
+    setState(() {
+      locationText =
+      "Lat: ${position.latitude}, Lng: ${position.longitude}";
+    });
+
+    // TEMP: fake weather (we replace next)
+    setState(() {
+      weatherText = "Hot (approx)";
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -462,7 +491,7 @@ class LocalHomeScreen extends StatelessWidget {
       body: Padding(
         padding: const EdgeInsets.all(20.0),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
               "You're at home",
@@ -471,9 +500,23 @@ class LocalHomeScreen extends StatelessWidget {
 
             const SizedBox(height: 20),
 
-            const Text("Current Location: (will show later)"),
+            Card(
+              child: ListTile(
+                leading: const Icon(Icons.location_on),
+                title: const Text("Current Location"),
+                subtitle: Text(locationText),
+              ),
+            ),
+
             const SizedBox(height: 20),
-            const Text("Weather: (coming soon)"),
+
+            Card(
+              child: ListTile(
+                leading: const Icon(Icons.wb_sunny),
+                title: const Text("Weather"),
+                subtitle: Text(weatherText),
+              ),
+            ),
 
             const SizedBox(height: 40),
 
@@ -536,6 +579,23 @@ class TravelerHomeScreen extends StatelessWidget {
             const SizedBox(height: 20),
 
             const Text("Language & Folklores"),
+
+            ElevatedButton(
+              onPressed: () async {
+                final prefs = await SharedPreferences.getInstance();
+                final token = prefs.getString('token');
+
+                final response = await http.get(
+                  Uri.parse('http://10.0.2.2:8000/api/protected/'),
+                  headers: {
+                    'Authorization': 'Token $token',
+                  },
+                );
+
+                print(response.body);
+              },
+              child: const Text('Test Protected API'),
+            ),
           ],
         ),
       ),

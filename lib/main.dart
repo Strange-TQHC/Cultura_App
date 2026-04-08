@@ -467,18 +467,42 @@ class _LocalHomeScreenState extends State<LocalHomeScreen> {
 
   Future<void> getLocation() async {
     Position position = await Geolocator.getCurrentPosition(
-      desiredAccuracy: LocationAccuracy.high,
+      desiredAccuracy: LocationAccuracy.medium,
     );
 
+    double lat = position.latitude;
+    double lon = position.longitude;
+
     setState(() {
-      locationText =
-      "Lat: ${position.latitude}, Lng: ${position.longitude}";
+      locationText = "Lat: $lat, Lng: $lon";
     });
 
-    // TEMP: fake weather (we replace next)
-    setState(() {
-      weatherText = "Hot (approx)";
-    });
+    await getWeather(lat, lon);
+  }
+
+  Future<void> getWeather(double lat, double lon) async {
+    const apiKey = "e5f168beaa4a34e8b14076bdf59bbf28";
+
+    final url = Uri.parse(
+      "https://api.openweathermap.org/data/2.5/weather?lat=$lat&lon=$lon&appid=$apiKey&units=metric",
+    );
+
+    final response = await http.get(url);
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+
+      double temp = data['main']['temp'];
+      String condition = data['weather'][0]['main'];
+
+      setState(() {
+        weatherText = "$temp°C, $condition";
+      });
+    } else {
+      setState(() {
+        weatherText = "Failed to load weather";
+      });
+    }
   }
 
   @override

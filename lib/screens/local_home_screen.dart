@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:geolocator/geolocator.dart';
-import 'dart:convert';
-import 'package:http/http.dart' as http;
+import '../services/location_service.dart';
+import '../services/weather_service.dart';
 
 class LocalHomeScreen extends StatefulWidget {
   const LocalHomeScreen({super.key});
@@ -21,9 +20,7 @@ class _LocalHomeScreenState extends State<LocalHomeScreen> {
   }
 
   Future<void> getLocation() async {
-    Position position = await Geolocator.getCurrentPosition(
-      desiredAccuracy: LocationAccuracy.medium,
-    );
+    final position = await LocationService.getCurrentLocation();
 
     double lat = position.latitude;
     double lon = position.longitude;
@@ -32,32 +29,11 @@ class _LocalHomeScreenState extends State<LocalHomeScreen> {
       locationText = "Lat: $lat, Lng: $lon";
     });
 
-    await getWeather(lat, lon);
-  }
+    final weather = await WeatherService.getWeather(lat, lon);
 
-  Future<void> getWeather(double lat, double lon) async {
-    const apiKey = "e5f168beaa4a34e8b14076bdf59bbf28";
-
-    final url = Uri.parse(
-      "https://api.openweathermap.org/data/2.5/weather?lat=$lat&lon=$lon&appid=$apiKey&units=metric",
-    );
-
-    final response = await http.get(url);
-
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-
-      double temp = data['main']['temp'];
-      String condition = data['weather'][0]['main'];
-
-      setState(() {
-        weatherText = "$temp°C, $condition";
-      });
-    } else {
-      setState(() {
-        weatherText = "Failed to load weather";
-      });
-    }
+    setState(() {
+      weatherText = weather;
+    });
   }
 
   @override

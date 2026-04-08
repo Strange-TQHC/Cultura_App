@@ -6,7 +6,14 @@ class MapView extends StatelessWidget {
   final double lat;
   final double lon;
 
-  const MapView({super.key, required this.lat, required this.lon});
+  final List<Map<String, dynamic>> places;
+
+  const MapView({
+    super.key,
+    required this.lat,
+    required this.lon,
+    required this.places,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -23,6 +30,7 @@ class MapView extends StatelessWidget {
           ),
           MarkerLayer(
             markers: [
+              // USER LOCATION
               Marker(
                 point: LatLng(lat, lon),
                 width: 40,
@@ -33,6 +41,20 @@ class MapView extends StatelessWidget {
                   size: 40,
                 ),
               ),
+
+              // PLACES
+              ...places.map((place) {
+                return Marker(
+                  point: LatLng(place['lat'], place['lon']),
+                  width: 30,
+                  height: 30,
+                  child: const Icon(
+                    Icons.place,
+                    color: Colors.blue,
+                    size: 30,
+                  ),
+                );
+              }).toList(),
             ],
           ),
         ],

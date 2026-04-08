@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/location_service.dart';
 import '../widgets/map_view.dart';
+import '../services/places_service.dart';
 
 class TravelerHomeScreen extends StatefulWidget {
   const TravelerHomeScreen({super.key});
@@ -13,6 +14,8 @@ class _TravelerHomeScreenState extends State<TravelerHomeScreen> {
   double? lat;
   double? lon;
 
+  List<Map<String, dynamic>> places = [];
+
   @override
   void initState() {
     super.initState();
@@ -20,12 +23,18 @@ class _TravelerHomeScreenState extends State<TravelerHomeScreen> {
   }
 
   Future<void> loadLocation() async {
-    // reuse your existing service
     final position = await LocationService.getCurrentLocation();
 
+    double latValue = position.latitude;
+    double lonValue = position.longitude;
+
+    final fetchedPlaces =
+    await PlacesService.getNearbyPlaces(latValue, lonValue);
+
     setState(() {
-      lat = position.latitude;
-      lon = position.longitude;
+      lat = latValue;
+      lon = lonValue;
+      places = fetchedPlaces;
     });
   }
   @override
@@ -56,7 +65,11 @@ class _TravelerHomeScreenState extends State<TravelerHomeScreen> {
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 10),
-                  MapView(lat: lat!, lon: lon!),
+                  MapView(
+                    lat: lat!,
+                    lon: lon!,
+                    places: places,
+                  )
                 ],
               ),
             ),

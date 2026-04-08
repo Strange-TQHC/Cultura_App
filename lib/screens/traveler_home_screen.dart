@@ -1,8 +1,33 @@
 import 'package:flutter/material.dart';
+import '../services/location_service.dart';
+import '../widgets/map_view.dart';
 
-class TravelerHomeScreen extends StatelessWidget {
+class TravelerHomeScreen extends StatefulWidget {
   const TravelerHomeScreen({super.key});
 
+  @override
+  State<TravelerHomeScreen> createState() => _TravelerHomeScreenState();
+}
+
+class _TravelerHomeScreenState extends State<TravelerHomeScreen> {
+  double? lat;
+  double? lon;
+
+  @override
+  void initState() {
+    super.initState();
+    loadLocation();
+  }
+
+  Future<void> loadLocation() async {
+    // reuse your existing service
+    final position = await LocationService.getCurrentLocation();
+
+    setState(() {
+      lat = position.latitude;
+      lon = position.longitude;
+    });
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -18,7 +43,24 @@ class TravelerHomeScreen extends StatelessWidget {
 
             const SizedBox(height: 20),
 
-            _buildSection("Nearby Highlights"),
+            /// Nearby Highlights + OSM
+            lat == null
+                ? const Center(child: CircularProgressIndicator())
+                : Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    "Nearby Highlights",
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 10),
+                  MapView(lat: lat!, lon: lon!),
+                ],
+              ),
+            ),
+
             _buildSection("History & Culture"),
             _buildSection("Food & Etiquette"),
             _buildSection("Local Language & Folklores"),

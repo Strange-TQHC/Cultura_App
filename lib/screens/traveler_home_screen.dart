@@ -17,6 +17,8 @@ class _TravelerHomeScreenState extends State<TravelerHomeScreen> {
   double? selectedLat;
   double? selectedLon;
 
+  Map<String, dynamic>? selectedPlace;
+
   List<Map<String, dynamic>> places = [];
 
   @override
@@ -97,6 +99,7 @@ class _TravelerHomeScreenState extends State<TravelerHomeScreen> {
                             setState(() {
                               selectedLat = place['lat'];
                               selectedLon = place['lon'];
+                              selectedPlace = place;
                             });
                           },
                           child: Card(
@@ -127,6 +130,40 @@ class _TravelerHomeScreenState extends State<TravelerHomeScreen> {
                           ),
                         );
                       },
+                    ),
+                  ),
+
+                  //Detail Panel UI
+                  const SizedBox(height: 20),
+
+                  selectedPlace == null
+                      ? const Text("Select a place to see details")
+                      : Card(
+                    margin: const EdgeInsets.all(16),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            selectedPlace!['name'],
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+
+                          const SizedBox(height: 10),
+
+                          Text("Type: ${selectedPlace!['type']}"),
+
+                          const SizedBox(height: 10),
+
+                          Text(
+                            "Location: ${selectedPlace!['lat']}, ${selectedPlace!['lon']}",
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ],

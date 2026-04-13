@@ -30,6 +30,7 @@ class PlacesService {
           "name": e['tags']?['name'] ?? "Unknown",
           "lat": e['lat'],
           "lon": e['lon'],
+          "type": e['tags']?['amenity'] ?? "unknown",
         };
       }).toList();
     } else {

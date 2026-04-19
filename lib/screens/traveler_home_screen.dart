@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../services/location_service.dart';
 import '../widgets/map_view.dart';
 import '../services/places_service.dart';
+import '../services/ai_service.dart';
 
 class TravelerHomeScreen extends StatefulWidget {
   const TravelerHomeScreen({super.key});
@@ -18,6 +19,9 @@ class _TravelerHomeScreenState extends State<TravelerHomeScreen> {
   double? selectedLon;
 
   Map<String, dynamic>? selectedPlace;
+
+  String? aiDescription;
+  bool isLoadingAI = false;
 
   List<Map<String, dynamic>> places = [];
 
@@ -95,13 +99,26 @@ class _TravelerHomeScreenState extends State<TravelerHomeScreen> {
                         final place = places[index];
 
                         return GestureDetector(
-                          onTap: () {
+                          onTap: () async {
                             setState(() {
                               selectedLat = place['lat'];
                               selectedLon = place['lon'];
                               selectedPlace = place;
+                              isLoadingAI = true;
+                              aiDescription = null;
+                            });
+
+                            final desc = await AIService.getDescription(
+                              place['name'],
+                              place['type'],
+                            );
+
+                            setState(() {
+                              aiDescription = desc;
+                              isLoadingAI = false;
                             });
                           },
+
                           child: Card(
                             margin: const EdgeInsets.symmetric(horizontal: 8),
                             child: Container(
@@ -162,6 +179,10 @@ class _TravelerHomeScreenState extends State<TravelerHomeScreen> {
                           Text(
                             "Location: ${selectedPlace!['lat']}, ${selectedPlace!['lon']}",
                           ),
+
+                          isLoadingAI
+                              ? const CircularProgressIndicator()
+                              : Text(aiDescription ?? "No description"),
                         ],
                       ),
                     ),

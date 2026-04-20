@@ -3,6 +3,7 @@ import '../services/location_service.dart';
 import '../widgets/map_view.dart';
 import '../services/places_service.dart';
 import '../services/ai_service.dart';
+import '../services/tts_service.dart';
 
 class TravelerHomeScreen extends StatefulWidget {
   const TravelerHomeScreen({super.key});
@@ -182,7 +183,38 @@ class _TravelerHomeScreenState extends State<TravelerHomeScreen> {
 
                           isLoadingAI
                               ? const CircularProgressIndicator()
-                              : Text(aiDescription ?? "No description"),
+                              : Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(aiDescription ?? "No description"),
+
+                              const SizedBox(height: 10),
+
+                              Row(
+                                children: [
+                                  ElevatedButton.icon(
+                                    onPressed: aiDescription == null
+                                        ? null
+                                        : () {
+                                      TTSService.speak(aiDescription!);
+                                    },
+                                    icon: const Icon(Icons.volume_up),
+                                    label: const Text("Read Aloud"),
+                                  ),
+
+                                  const SizedBox(width: 10),
+
+                                  ElevatedButton.icon(
+                                    onPressed: () {
+                                      TTSService.stop();
+                                    },
+                                    icon: const Icon(Icons.stop),
+                                    label: const Text("Stop"),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          )
                         ],
                       ),
                     ),

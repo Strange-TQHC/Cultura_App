@@ -137,8 +137,8 @@ class LoginScreen extends StatefulWidget {
             const SizedBox(height: 30),
             ElevatedButton(
               onPressed: () async {
-                final url = Uri.parse('http://10.0.2.2:8000/api/login/');
-                // final url = Uri.parse('http://172.30.143.154:8000/api/login/');
+                // final url = Uri.parse('http://10.0.2.2:8000/api/login/');
+                final url = Uri.parse('http://172.30.143.154:8000/api/login/');
 
                 final response = await http.post(
                   url,

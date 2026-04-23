@@ -5,6 +5,7 @@ import '../services/places_service.dart';
 import '../services/ai_service.dart';
 import '../services/tts_service.dart';
 import '../services/contribution_service.dart';
+import '../services/place_match_service.dart';
 
 class TravelerHomeScreen extends StatefulWidget {
   const TravelerHomeScreen({super.key});
@@ -112,22 +113,40 @@ class _TravelerHomeScreenState extends State<TravelerHomeScreen> {
                               contributions = [];
                             });
 
-                            // STEP 1: Get contributions (using dummy placeId for now)
-                            final fetchedContributions =
-                            await ContributionService.getContributions(1);
+                            // Match place with DB
+                            final placeId =
+                            await PlaceMatchService.findPlaceId(place['name']);
 
-                            // STEP 2: Call AI with real data
-                            final desc = await AIService.getDescription(
-                              place['name'],
-                              place['type'],
-                              fetchedContributions,
-                            );
+                            if (placeId != null) {
+                              // Fetch contributions
+                              final fetchedContributions =
+                              await ContributionService.getContributions(placeId);
 
-                            setState(() {
-                              contributions = fetchedContributions;
-                              aiDescription = desc;
-                              isLoadingAI = false;
-                            });
+                              // AI with real DB data
+                              final desc = await AIService.getDescription(
+                                place['name'],
+                                place['type'],
+                                fetchedContributions,
+                              );
+
+                              setState(() {
+                                contributions = fetchedContributions;
+                                aiDescription = desc;
+                                isLoadingAI = false;
+                              });
+                            } else {
+                              // fallback (no DB data)
+                              final desc = await AIService.getDescription(
+                                place['name'],
+                                place['type'],
+                                [],
+                              );
+
+                              setState(() {
+                                aiDescription = desc;
+                                isLoadingAI = false;
+                              });
+                            }
                           },
 
                           child: Card(

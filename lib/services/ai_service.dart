@@ -8,8 +8,8 @@ class AIService {
       List contributions,) async {
     try {
       final response = await http.post(
-        Uri.parse('http://10.0.2.2:8000/api/ai-description/'),
-        // Uri.parse('http://172.30.143.154:8000/api/ai-description/'),
+        // Uri.parse('http://10.0.2.2:8000/api/ai-description/'),
+        Uri.parse('http://172.30.143.154:8000/api/ai-description/'),
         headers: {
           'Content-Type': 'application/json',
         },

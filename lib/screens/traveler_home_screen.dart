@@ -4,6 +4,7 @@ import '../widgets/map_view.dart';
 import '../services/places_service.dart';
 import '../services/ai_service.dart';
 import '../services/tts_service.dart';
+import '../services/contribution_service.dart';
 
 class TravelerHomeScreen extends StatefulWidget {
   const TravelerHomeScreen({super.key});
@@ -26,6 +27,8 @@ class _TravelerHomeScreenState extends State<TravelerHomeScreen> {
 
   List<Map<String, dynamic>> places = [];
 
+  List contributions = [];
+
   @override
   void initState() {
     super.initState();
@@ -38,8 +41,7 @@ class _TravelerHomeScreenState extends State<TravelerHomeScreen> {
     double latValue = position.latitude;
     double lonValue = position.longitude;
 
-    final fetchedPlaces =
-    await PlacesService.getNearbyPlaces(latValue, lonValue);
+    final fetchedPlaces = await PlacesService.getNearbyPlaces(latValue, lonValue);
 
     setState(() {
       lat = latValue;
@@ -107,14 +109,22 @@ class _TravelerHomeScreenState extends State<TravelerHomeScreen> {
                               selectedPlace = place;
                               isLoadingAI = true;
                               aiDescription = null;
+                              contributions = [];
                             });
 
+                            // STEP 1: Get contributions (using dummy placeId for now)
+                            final fetchedContributions =
+                            await ContributionService.getContributions(1);
+
+                            // STEP 2: Call AI with real data
                             final desc = await AIService.getDescription(
                               place['name'],
                               place['type'],
+                              fetchedContributions,
                             );
 
                             setState(() {
+                              contributions = fetchedContributions;
                               aiDescription = desc;
                               isLoadingAI = false;
                             });
@@ -181,6 +191,8 @@ class _TravelerHomeScreenState extends State<TravelerHomeScreen> {
                             "Location: ${selectedPlace!['lat']}, ${selectedPlace!['lon']}",
                           ),
 
+                          const SizedBox(height: 10),
+
                           isLoadingAI
                               ? const CircularProgressIndicator()
                               : Column(
@@ -214,7 +226,18 @@ class _TravelerHomeScreenState extends State<TravelerHomeScreen> {
                                 ],
                               ),
                             ],
-                          )
+                          ),
+
+                          const SizedBox(height: 15),
+
+                          const Text(
+                            "Local Insights:",
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+
+                          ...contributions.map((c) {
+                            return Text("- ${c['content']}");
+                          }).toList(),
                         ],
                       ),
                     ),

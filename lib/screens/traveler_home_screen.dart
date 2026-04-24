@@ -6,6 +6,7 @@ import '../services/ai_service.dart';
 import '../services/tts_service.dart';
 import '../services/contribution_service.dart';
 import '../services/place_match_service.dart';
+import '../screens/add_contribution_screen.dart';
 
 class TravelerHomeScreen extends StatefulWidget {
   const TravelerHomeScreen({super.key});
@@ -257,6 +258,27 @@ class _TravelerHomeScreenState extends State<TravelerHomeScreen> {
                           ...contributions.map((c) {
                             return Text("- ${c['content']}");
                           }).toList(),
+
+                          const SizedBox(height: 15),
+
+                          ElevatedButton(
+                            onPressed: selectedPlace == null
+                                ? null
+                                : () async {
+                              final placeId =
+                              await PlaceMatchService.findPlaceId(selectedPlace!['name']);
+
+                              if (placeId != null) {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => AddContributionScreen(placeId: placeId),
+                                  ),
+                                );
+                              }
+                            },
+                            child: const Text("Add Contribution"),
+                          ),
                         ],
                       ),
                     ),

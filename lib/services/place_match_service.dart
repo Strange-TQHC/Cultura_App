@@ -7,8 +7,12 @@ class PlaceMatchService {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('token');
 
+    ///Android Emulator
     // final url = Uri.parse('http://10.0.2.2:8000/api/find-place/?name=$name');
-    final url = Uri.parse('http://172.30.143.154:8000/api/find-place/?name=$name');
+    ///Isha
+    //final url = Uri.parse('http://172.30.143.154:8000/api/find-place/?name=$name');
+    ///JioFiber
+    final url = Uri.parse('http://192.168.29.97:8000/api/find-place/?name=$name');
 
     final response = await http.get(
       url,

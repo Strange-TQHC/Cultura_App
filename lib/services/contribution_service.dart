@@ -8,8 +8,13 @@ class ContributionService {
     final token = prefs.getString('token');
 
     final response = await http.get(
+      ///Android Emulator
       // Uri.parse('http://10.0.2.2:8000/api/contributions/$placeId/'),
-      Uri.parse('http://172.30.143.154:8000/api/contributions/$placeId/'),
+      ///Isha
+      //Uri.parse('http://172.30.143.154:8000/api/contributions/$placeId/'),
+      ///JioFiber
+      Uri.parse('http://192.168.29.97:8000/api/contributions/$placeId/'),
+
       headers: {
         'Authorization': 'Token $token',
       },

@@ -137,8 +137,12 @@ class LoginScreen extends StatefulWidget {
             const SizedBox(height: 30),
             ElevatedButton(
               onPressed: () async {
+                ///Android Emulator
                 // final url = Uri.parse('http://10.0.2.2:8000/api/login/');
-                final url = Uri.parse('http://172.30.143.154:8000/api/login/');
+                ///Isha
+                //final url = Uri.parse('http://172.30.143.154:8000/api/login/');
+                ///JioFiber
+                final url = Uri.parse('http://192.168.29.97:8000/api/login/');
 
                 final response = await http.post(
                   url,
@@ -322,8 +326,12 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
 
             ElevatedButton(
               onPressed: () async {
-                /// final url = Uri.parse('http://10.0.2.2:8000/api/signup/');
-                final url = Uri.parse('http://172.30.143.154:8000/api/signup/');
+                ///Android Emulator
+                // final url = Uri.parse('http://10.0.2.2:8000/api/signup/');
+                ///Isha
+                //final url = Uri.parse('http://172.30.143.154:8000/api/signup/');
+                ///JioFiber
+                final url = Uri.parse('http://192.168.29.97:8000/api/signup/');
 
                 final response = await http.post(
                   url,
@@ -332,7 +340,7 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
                   },
                   body: jsonEncode({
                     "email": widget.email,
-                    "password": "123456", // temporary (we’ll fix later)
+                    "password": "123456",
                     "name": nameController.text,
                     "age": int.tryParse(ageController.text) ?? 0,
                     "gender": genderController.text,

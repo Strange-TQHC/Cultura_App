@@ -8,8 +8,13 @@ class AIService {
       List contributions,) async {
     try {
       final response = await http.post(
+        ///Android Emulator
         // Uri.parse('http://10.0.2.2:8000/api/ai-description/'),
-        Uri.parse('http://172.30.143.154:8000/api/ai-description/'),
+        ///Isha
+        //Uri.parse('http://172.30.143.154:8000/api/ai-description/'),
+        ///JioFiber
+        Uri.parse('http://192.168.29.97:8000/api/ai-description/'),
+
         headers: {
           'Content-Type': 'application/json',
         },

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/location_service.dart';
 import '../services/weather_service.dart';
+import 'profile_screen.dart';
 
 class LocalHomeScreen extends StatefulWidget {
   const LocalHomeScreen({super.key});
@@ -82,9 +83,16 @@ class _LocalHomeScreenState extends State<LocalHomeScreen> {
 
             const SizedBox(height: 20),
 
-            ElevatedButton(
-              onPressed: () {},
-              child: const Text('Profile'),
+            IconButton(
+              icon: const Icon(Icons.person),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const ProfileScreen(),
+                  ),
+                );
+              },
             ),
           ],
         ),

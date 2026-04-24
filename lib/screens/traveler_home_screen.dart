@@ -7,6 +7,7 @@ import '../services/tts_service.dart';
 import '../services/contribution_service.dart';
 import '../services/place_match_service.dart';
 import '../screens/add_contribution_screen.dart';
+import 'profile_screen.dart';
 
 class TravelerHomeScreen extends StatefulWidget {
   const TravelerHomeScreen({super.key});
@@ -290,6 +291,17 @@ class _TravelerHomeScreenState extends State<TravelerHomeScreen> {
             _buildSection("History & Culture"),
             _buildSection("Food & Etiquette"),
             _buildSection("Local Language & Folklores"),
+            IconButton(
+              icon: const Icon(Icons.person),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const ProfileScreen(),
+                  ),
+                );
+              },
+            ),
           ],
         ),
       ),

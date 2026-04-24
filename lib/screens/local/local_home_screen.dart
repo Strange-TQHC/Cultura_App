@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../services/location_service.dart';
-import '../services/weather_service.dart';
-import 'profile_screen.dart';
+import '../../services/location/location_service.dart';
+import '../../services/api/weather_service.dart';
+import '../profile/profile_screen.dart';
 
 class LocalHomeScreen extends StatefulWidget {
   const LocalHomeScreen({super.key});

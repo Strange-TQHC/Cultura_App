@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../services/add_contribution_service.dart';
+import '../../services/api/add_contribution_service.dart';
 
 class AddContributionScreen extends StatefulWidget {
   final int placeId;

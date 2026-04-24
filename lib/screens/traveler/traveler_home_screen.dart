@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
-import '../services/location_service.dart';
-import '../widgets/map_view.dart';
-import '../services/places_service.dart';
-import '../services/ai_service.dart';
-import '../services/tts_service.dart';
-import '../services/contribution_service.dart';
-import '../services/place_match_service.dart';
-import '../screens/add_contribution_screen.dart';
-import 'profile_screen.dart';
+import '../../services/location/location_service.dart';
+import '../../widgets/map/map_view.dart';
+import '../../services/api/places_service.dart';
+import '../../services/ai/ai_service.dart';
+import '../../services/ai/tts_service.dart';
+import '../../services/api/contribution_service.dart';
+import '../../services/api/place_match_service.dart';
+import 'add_contribution_screen.dart';
+import '../profile/profile_screen.dart';
 
 class TravelerHomeScreen extends StatefulWidget {
   const TravelerHomeScreen({super.key});

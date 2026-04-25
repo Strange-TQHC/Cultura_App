@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'login_screen.dart';
 import 'signup_screen.dart';
+import '../traveler/traveler_home_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -59,7 +60,12 @@ class HomeScreen extends StatelessWidget {
 
             OutlinedButton(
               onPressed: () {
-                // Guest flow (later)
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const TravelerHomeScreen(),
+                  ),
+                );
               },
               child: const Text('Continue as Guest'),
             ),

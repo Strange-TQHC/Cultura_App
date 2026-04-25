@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../../services/location/location_service.dart';
 import '../../services/api/weather_service.dart';
 import '../profile/profile_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../auth/home_screen.dart';
 
 class LocalHomeScreen extends StatefulWidget {
   const LocalHomeScreen({super.key});
@@ -43,6 +45,34 @@ class _LocalHomeScreenState extends State<LocalHomeScreen> {
       appBar: AppBar(
         title: const Text('CULTURA - Home'),
         automaticallyImplyLeading: false,
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.person),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const ProfileScreen(),
+                  ),
+                );
+              },
+            ),
+            IconButton(
+              icon: const Icon(Icons.logout),
+              onPressed: () async {
+                final prefs = await SharedPreferences.getInstance();
+                await prefs.clear();
+
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const HomeScreen(),
+                  ),
+                      (route) => false,
+                );
+              },
+            ),
+          ]
       ),
       body: Padding(
         padding: const EdgeInsets.all(20.0),
@@ -82,18 +112,6 @@ class _LocalHomeScreenState extends State<LocalHomeScreen> {
             ),
 
             const SizedBox(height: 20),
-
-            IconButton(
-              icon: const Icon(Icons.person),
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const ProfileScreen(),
-                  ),
-                );
-              },
-            ),
           ],
         ),
       ),

@@ -8,6 +8,8 @@ import '../../services/api/contribution_service.dart';
 import '../../services/api/place_match_service.dart';
 import 'add_contribution_screen.dart';
 import '../profile/profile_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../auth/home_screen.dart';
 
 class TravelerHomeScreen extends StatefulWidget {
   const TravelerHomeScreen({super.key});
@@ -58,6 +60,34 @@ class _TravelerHomeScreenState extends State<TravelerHomeScreen> {
       appBar: AppBar(
         title: const Text('CULTURA - Traveler'),
         automaticallyImplyLeading: false,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.person),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const ProfileScreen(),
+                ),
+              );
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.logout),
+            onPressed: () async {
+              final prefs = await SharedPreferences.getInstance();
+              await prefs.clear();
+
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const HomeScreen(),
+                ),
+                    (route) => false,
+              );
+            },
+          ),
+        ]
       ),
       body: SingleChildScrollView(
         child: Column(
@@ -291,17 +321,6 @@ class _TravelerHomeScreenState extends State<TravelerHomeScreen> {
             _buildSection("History & Culture"),
             _buildSection("Food & Etiquette"),
             _buildSection("Local Language & Folklores"),
-            IconButton(
-              icon: const Icon(Icons.person),
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const ProfileScreen(),
-                  ),
-                );
-              },
-            ),
           ],
         ),
       ),

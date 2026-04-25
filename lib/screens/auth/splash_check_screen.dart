@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'dart:convert';
-import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'post_login_screen.dart';
 import 'home_screen.dart';
@@ -25,7 +23,7 @@ class _SplashCheckScreenState extends State<SplashCheckScreen> {
     final token = prefs.getString('token');
     final permanentLocation = prefs.getString('permanent_location');
 
-    if (token != null && permanentLocation != null) {
+    if (token != null && permanentLocation != null && token.isNotEmpty) {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(

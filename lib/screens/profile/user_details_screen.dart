@@ -5,8 +5,9 @@ import '../auth/post_login_screen.dart';
 
 class UserDetailsScreen extends StatefulWidget {
   final String email;
+  final String password;
 
-  const UserDetailsScreen({super.key, required this.email});
+  const UserDetailsScreen({super.key, required this.email, required this.password});
 
   @override
   State<UserDetailsScreen> createState() => _UserDetailsScreenState();
@@ -87,7 +88,7 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
                   },
                   body: jsonEncode({
                     "email": widget.email,
-                    "password": "123456",
+                    "password": widget.password,
                     "name": nameController.text,
                     "age": int.tryParse(ageController.text) ?? 0,
                     "gender": genderController.text,

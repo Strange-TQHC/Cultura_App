@@ -47,6 +47,7 @@ class _SignupScreenState extends State<SignupScreen> {
                     MaterialPageRoute(
                       builder: (context) => UserDetailsScreen(
                         email: emailController.text,
+                        password: passwordController.text,
                       ),
                     ),
                   );

@@ -10,6 +10,7 @@ import 'add_contribution_screen.dart';
 import '../profile/profile_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../auth/home_screen.dart';
+import '../../services/api/weather_service.dart';
 
 class TravelerHomeScreen extends StatefulWidget {
   const TravelerHomeScreen({super.key});
@@ -19,6 +20,9 @@ class TravelerHomeScreen extends StatefulWidget {
 }
 
 class _TravelerHomeScreenState extends State<TravelerHomeScreen> {
+  String locationText = "Fetching location...";
+  String weatherText = "Fetching weather...";
+
   double? lat;
   double? lon;
 
@@ -48,10 +52,14 @@ class _TravelerHomeScreenState extends State<TravelerHomeScreen> {
 
     final fetchedPlaces = await PlacesService.getNearbyPlaces(latValue, lonValue);
 
+    final weather = await WeatherService.getWeather(latValue, lonValue);
+
     setState(() {
       lat = latValue;
       lon = lonValue;
       places = fetchedPlaces;
+      locationText = "Lat: $latValue, Lng: $lonValue";
+      weatherText = weather;
     });
   }
   @override
@@ -332,13 +340,15 @@ class _TravelerHomeScreenState extends State<TravelerHomeScreen> {
       margin: const EdgeInsets.all(16),
       child: ListTile(
         leading: const Icon(Icons.location_on),
-        title: const Text("Current Location"),
-        subtitle: const Text("Fetching..."),
+        title: Text("Current Location"),
+        subtitle: Text(locationText),
         trailing: Column(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: const [
-            Text("Time"),
-            Text("Weather"),
+          children: [
+            Text(
+              TimeOfDay.now().format(context),
+            ),
+            Text(weatherText),
           ],
         ),
       ),

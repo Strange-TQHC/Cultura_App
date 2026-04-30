@@ -11,6 +11,8 @@ import '../profile/profile_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../auth/home_screen.dart';
 import '../../services/api/weather_service.dart';
+import 'package:geocoding/geocoding.dart';
+import '../../services/api/location_knowledge_service.dart';
 
 class TravelerHomeScreen extends StatefulWidget {
   const TravelerHomeScreen({super.key});
@@ -31,6 +33,8 @@ class _TravelerHomeScreenState extends State<TravelerHomeScreen> {
 
   Map<String, dynamic>? selectedPlace;
 
+  Map<String, dynamic>? knowledge;
+
   String? aiDescription;
   bool isLoadingAI = false;
 
@@ -50,18 +54,38 @@ class _TravelerHomeScreenState extends State<TravelerHomeScreen> {
     double latValue = position.latitude;
     double lonValue = position.longitude;
 
-    final fetchedPlaces = await PlacesService.getNearbyPlaces(latValue, lonValue);
+    final placemarks =
+    await placemarkFromCoordinates(latValue, lonValue);
 
-    final weather = await WeatherService.getWeather(latValue, lonValue);
+    String cityName = placemarks.first.locality ?? "Unknown";
+
+    final fetchedPlaces =
+    await PlacesService.getNearbyPlaces(latValue, lonValue);
+
+    final weather =
+    await WeatherService.getWeather(latValue, lonValue);
 
     setState(() {
       lat = latValue;
       lon = lonValue;
       places = fetchedPlaces;
-      locationText = "Lat: $latValue, Lng: $lonValue";
+
+      locationText = cityName;
       weatherText = weather;
     });
+
+    loadLocationKnowledge(cityName);
   }
+
+  Future<void> loadLocationKnowledge(String city) async {
+    final data =
+    await LocationKnowledgeService.getKnowledge(city);
+
+    setState(() {
+      knowledge = data;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -326,9 +350,42 @@ class _TravelerHomeScreenState extends State<TravelerHomeScreen> {
               ),
             ),
 
-            _buildSection("History & Culture"),
-            _buildSection("Food & Etiquette"),
-            _buildSection("Local Language & Folklores"),
+            knowledge == null
+                ? const Text("Loading cultural data...")
+                : Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    "History & Culture",
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 10),
+                  Text("${knowledge!['history']}\n\n${knowledge!['culture']}"),
+
+                  const SizedBox(height: 20),
+
+                  const Text(
+                    "Food & Etiquette",
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  Text("${knowledge!['food']}\n\n${knowledge!['etiquette']}"),
+
+                  const SizedBox(height: 20),
+
+                  const Text(
+                    "Language & Folklore",
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  Text(
+                    "Languages: ${knowledge!['languages']}\n\n"
+                        "Phrases: ${knowledge!['phrases']}\n\n"
+                        "Folklore: ${knowledge!['folklore']}",
+                  ),
+                ],
+              ),
+            ),
           ],
         ),
       ),
@@ -352,46 +409,6 @@ class _TravelerHomeScreenState extends State<TravelerHomeScreen> {
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildSection(String title) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Text(
-            title,
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ),
-
-        const SizedBox(height: 10),
-
-        SizedBox(
-          height: 120,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            itemCount: 5,
-            itemBuilder: (context, index) {
-              return Card(
-                margin: const EdgeInsets.symmetric(horizontal: 8),
-                child: Container(
-                  width: 120,
-                  alignment: Alignment.center,
-                  child: Text("$title\nItem ${index + 1}"),
-                ),
-              );
-            },
-          ),
-        ),
-
-        const SizedBox(height: 20),
-      ],
     );
   }
 }

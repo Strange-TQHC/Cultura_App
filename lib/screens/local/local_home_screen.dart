@@ -16,13 +16,6 @@ import '../traveler/food_screen.dart';
 import '../traveler/language_screen.dart';
 import '../../services/api/location_knowledge_service.dart';
 import 'package:geocoding/geocoding.dart';
-import '../../services/api/places_service.dart';
-import '../../widgets/map/map_view.dart';
-import '../../services/api/contribution_service.dart';
-import '../../services/api/place_match_service.dart';
-import '../../services/ai/ai_service.dart';
-import '../../services/ai/tts_service.dart';
-import '../traveler/add_contribution_screen.dart';
 
 class LocalHomeScreen extends StatefulWidget {
   const LocalHomeScreen({super.key});

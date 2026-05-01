@@ -13,6 +13,9 @@ import '../auth/home_screen.dart';
 import '../../services/api/weather_service.dart';
 import 'package:geocoding/geocoding.dart';
 import '../../services/api/location_knowledge_service.dart';
+import 'history_screen.dart';
+import 'food_screen.dart';
+import 'language_screen.dart';
 
 class TravelerHomeScreen extends StatefulWidget {
   const TravelerHomeScreen({super.key});
@@ -41,6 +44,8 @@ class _TravelerHomeScreenState extends State<TravelerHomeScreen> {
   List<Map<String, dynamic>> places = [];
 
   List contributions = [];
+
+  int selectedIndex = 0;
 
   @override
   void initState() {
@@ -121,273 +126,35 @@ class _TravelerHomeScreenState extends State<TravelerHomeScreen> {
           ),
         ]
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            // TOP INFO CARD
-            _buildTopCard(),
-
-            const SizedBox(height: 20),
-
-            /// Nearby Highlights + OSM
-            lat == null
-                ? const Center(child: CircularProgressIndicator())
-                : Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    "Nearby Highlights",
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 10),
-
-                  // MAP
-                  SizedBox(
-                    height: 200,
-                    child: MapView(
-                      lat: lat!,
-                      lon: lon!,
-                      places: places,
-                      selectedLat: selectedLat,
-                      selectedLon: selectedLon,
-                    ),
-                  ),
-
-                  const SizedBox(height: 20),
-
-                  // LIST
-                  SizedBox(
-                    height: 120,
-                    child: ListView.builder(
-                      scrollDirection: Axis.horizontal,
-                      itemCount: places.length,
-                      itemBuilder: (context, index) {
-                        final place = places[index];
-
-                        return GestureDetector(
-                          onTap: () async {
-                            setState(() {
-                              selectedLat = place['lat'];
-                              selectedLon = place['lon'];
-                              selectedPlace = place;
-                              isLoadingAI = true;
-                              aiDescription = null;
-                              contributions = [];
-                            });
-
-                            // Match place with DB
-                            final placeId =
-                            await PlaceMatchService.findPlaceId(place['name']);
-
-                            if (placeId != null) {
-                              // Fetch contributions
-                              final fetchedContributions =
-                              await ContributionService.getContributions(placeId);
-
-                              // AI with real DB data
-                              final desc = await AIService.getDescription(
-                                place['name'],
-                                place['type'],
-                                fetchedContributions,
-                              );
-
-                              setState(() {
-                                contributions = fetchedContributions;
-                                aiDescription = desc;
-                                isLoadingAI = false;
-                              });
-                            } else {
-                              // fallback (no DB data)
-                              final desc = await AIService.getDescription(
-                                place['name'],
-                                place['type'],
-                                [],
-                              );
-
-                              setState(() {
-                                aiDescription = desc;
-                                isLoadingAI = false;
-                              });
-                            }
-                          },
-
-                          child: Card(
-                            margin: const EdgeInsets.symmetric(horizontal: 8),
-                            child: Container(
-                              width: 140,
-                              padding: const EdgeInsets.all(10),
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(
-                                    Icons.place,
-                                    color: (place['lat'] == selectedLat &&
-                                        place['lon'] == selectedLon)
-                                        ? Colors.green
-                                        : Colors.blue,
-                                  ),
-                                  const SizedBox(height: 10),
-                                  Text(
-                                    place['name'],
-                                    textAlign: TextAlign.center,
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-
-                  //Detail Panel UI
-                  const SizedBox(height: 20),
-
-                  selectedPlace == null
-                      ? const Text("Select a place to see details")
-                      : Card(
-                    margin: const EdgeInsets.all(16),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            selectedPlace!['name'],
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-
-                          const SizedBox(height: 10),
-
-                          Text("Type: ${selectedPlace!['type']}"),
-
-                          const SizedBox(height: 10),
-
-                          Text(
-                            "Location: ${selectedPlace!['lat']}, ${selectedPlace!['lon']}",
-                          ),
-
-                          const SizedBox(height: 10),
-
-                          isLoadingAI
-                              ? const CircularProgressIndicator()
-                              : Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(aiDescription ?? "No description"),
-
-                              const SizedBox(height: 10),
-
-                              Row(
-                                children: [
-                                  ElevatedButton.icon(
-                                    onPressed: aiDescription == null
-                                        ? null
-                                        : () {
-                                      TTSService.speak(aiDescription!);
-                                    },
-                                    icon: const Icon(Icons.volume_up),
-                                    label: const Text("Read Aloud"),
-                                  ),
-
-                                  const SizedBox(width: 10),
-
-                                  ElevatedButton.icon(
-                                    onPressed: () {
-                                      TTSService.stop();
-                                    },
-                                    icon: const Icon(Icons.stop),
-                                    label: const Text("Stop"),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-
-                          const SizedBox(height: 15),
-
-                          const Text(
-                            "Local Insights:",
-                            style: TextStyle(fontWeight: FontWeight.bold),
-                          ),
-
-                          ...contributions.map((c) {
-                            return Text("- ${c['content']}");
-                          }).toList(),
-
-                          const SizedBox(height: 15),
-
-                          ElevatedButton(
-                            onPressed: selectedPlace == null
-                                ? null
-                                : () async {
-                              final placeId =
-                              await PlaceMatchService.findPlaceId(selectedPlace!['name']);
-
-                              if (placeId != null) {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => AddContributionScreen(placeId: placeId),
-                                  ),
-                                );
-                              }
-                            },
-                            child: const Text("Add Contribution"),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            knowledge == null
-                ? const Text("Loading cultural data...")
-                : Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    "History & Culture",
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 10),
-                  Text("${knowledge!['history']}\n\n${knowledge!['culture']}"),
-
-                  const SizedBox(height: 20),
-
-                  const Text(
-                    "Food & Etiquette",
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  Text("${knowledge!['food']}\n\n${knowledge!['etiquette']}"),
-
-                  const SizedBox(height: 20),
-
-                  const Text(
-                    "Language & Folklore",
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  Text(
-                    "Languages: ${knowledge!['languages']}\n\n"
-                        "Phrases: ${knowledge!['phrases']}\n\n"
-                        "Folklore: ${knowledge!['folklore']}",
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
+      body: getCurrentScreen(),
+      bottomNavigationBar: BottomNavigationBar(
+        type: BottomNavigationBarType.fixed,
+        currentIndex: selectedIndex,
+        selectedItemColor: Colors.blue,
+        unselectedItemColor: Colors.grey,
+        onTap: (index) {
+          setState(() {
+            selectedIndex = index;
+          });
+        },
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.explore),
+            label: "Explore",
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.history_edu),
+            label: "Culture",
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.restaurant),
+            label: "Food",
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.language),
+            label: "Language",
+          ),
+        ],
       ),
     );
   }
@@ -410,5 +177,254 @@ class _TravelerHomeScreenState extends State<TravelerHomeScreen> {
         ),
       ),
     );
+  }
+
+  Widget _buildExploreScreen() {
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          // TOP INFO CARD
+          _buildTopCard(),
+
+          const SizedBox(height: 20),
+
+          /// Nearby Highlights + OSM
+          lat == null
+              ? const Center(child: CircularProgressIndicator())
+              : Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  "Nearby Highlights",
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 10),
+
+                // MAP
+                SizedBox(
+                  height: 200,
+                  child: MapView(
+                    lat: lat!,
+                    lon: lon!,
+                    places: places,
+                    selectedLat: selectedLat,
+                    selectedLon: selectedLon,
+                  ),
+                ),
+
+                const SizedBox(height: 20),
+
+                // LIST
+                SizedBox(
+                  height: 120,
+                  child: ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: places.length,
+                    itemBuilder: (context, index) {
+                      final place = places[index];
+
+                      return GestureDetector(
+                        onTap: () async {
+                          setState(() {
+                            selectedLat = place['lat'];
+                            selectedLon = place['lon'];
+                            selectedPlace = place;
+                            isLoadingAI = true;
+                            aiDescription = null;
+                            contributions = [];
+                          });
+
+                          // Match place with DB
+                          final placeId =
+                          await PlaceMatchService.findPlaceId(place['name']);
+
+                          if (placeId != null) {
+                            // Fetch contributions
+                            final fetchedContributions =
+                            await ContributionService.getContributions(
+                                placeId);
+
+                            // AI with real DB data
+                            final desc = await AIService.getDescription(
+                              place['name'],
+                              place['type'],
+                              fetchedContributions,
+                            );
+
+                            setState(() {
+                              contributions = fetchedContributions;
+                              aiDescription = desc;
+                              isLoadingAI = false;
+                            });
+                          } else {
+                            // fallback (no DB data)
+                            final desc = await AIService.getDescription(
+                              place['name'],
+                              place['type'],
+                              [],
+                            );
+
+                            setState(() {
+                              aiDescription = desc;
+                              isLoadingAI = false;
+                            });
+                          }
+                        },
+
+                        child: Card(
+                          margin: const EdgeInsets.symmetric(horizontal: 8),
+                          child: Container(
+                            width: 140,
+                            padding: const EdgeInsets.all(10),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.place,
+                                  color: (place['lat'] == selectedLat &&
+                                      place['lon'] == selectedLon)
+                                      ? Colors.green
+                                      : Colors.blue,
+                                ),
+                                const SizedBox(height: 10),
+                                Text(
+                                  place['name'],
+                                  textAlign: TextAlign.center,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+
+                //Detail Panel UI
+                const SizedBox(height: 20),
+
+                selectedPlace == null
+                    ? const Text("Select a place to see details")
+                    : Card(
+                  margin: const EdgeInsets.all(16),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          selectedPlace!['name'],
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+
+                        const SizedBox(height: 10),
+
+                        Text("Type: ${selectedPlace!['type']}"),
+
+                        const SizedBox(height: 10),
+
+                        Text(
+                          "Location: ${selectedPlace!['lat']}, ${selectedPlace!['lon']}",
+                        ),
+
+                        const SizedBox(height: 10),
+
+                        isLoadingAI
+                            ? const CircularProgressIndicator()
+                            : Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(aiDescription ?? "No description"),
+
+                            const SizedBox(height: 10),
+
+                            Row(
+                              children: [
+                                ElevatedButton.icon(
+                                  onPressed: aiDescription == null
+                                      ? null
+                                      : () {
+                                    TTSService.speak(aiDescription!);
+                                  },
+                                  icon: const Icon(Icons.volume_up),
+                                  label: const Text("Read Aloud"),
+                                ),
+
+                                const SizedBox(width: 10),
+
+                                ElevatedButton.icon(
+                                  onPressed: () {
+                                    TTSService.stop();
+                                  },
+                                  icon: const Icon(Icons.stop),
+                                  label: const Text("Stop"),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+
+                        const SizedBox(height: 15),
+
+                        const Text(
+                          "Local Insights:",
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+
+                        ...contributions.map((c) {
+                          return Text("- ${c['content']}");
+                        }).toList(),
+
+                        const SizedBox(height: 15),
+
+                        ElevatedButton(
+                          onPressed: selectedPlace == null
+                              ? null
+                              : () async {
+                            final placeId =
+                            await PlaceMatchService.findPlaceId(
+                                selectedPlace!['name']);
+
+                            if (placeId != null) {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) =>
+                                      AddContributionScreen(placeId: placeId),
+                                ),
+                              );
+                            }
+                          },
+                          child: const Text("Add Contribution"),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget getCurrentScreen() {
+    if (selectedIndex == 0) {
+      return _buildExploreScreen();
+    } else if (selectedIndex == 1) {
+      return HistoryScreen(knowledge: knowledge);
+    } else if (selectedIndex == 2) {
+      return FoodScreen(knowledge: knowledge);
+    } else {
+      return LanguageScreen(knowledge: knowledge);
+    }
   }
 }

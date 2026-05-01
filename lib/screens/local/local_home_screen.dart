@@ -124,7 +124,10 @@ class _LocalHomeScreenState extends State<LocalHomeScreen> {
       ),
       body: getCurrentScreen(),
         bottomNavigationBar: BottomNavigationBar(
+          type: BottomNavigationBarType.fixed,
           currentIndex: selectedIndex,
+          selectedItemColor: Colors.blue,
+          unselectedItemColor: Colors.grey,
           onTap: (index) {
             setState(() {
               selectedIndex = index;

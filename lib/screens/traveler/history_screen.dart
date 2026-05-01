@@ -11,20 +11,71 @@ class HistoryScreen extends StatelessWidget {
       return const Center(child: CircularProgressIndicator());
     }
 
-    return Padding(
+    return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
-      child: SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            "History & Culture",
+            style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+          ),
+
+          const SizedBox(height: 20),
+
+          _buildSectionCard(
+            icon: Icons.history_edu,
+            title: "History",
+            content: knowledge!['history'],
+          ),
+
+          const SizedBox(height: 16),
+
+          _buildSectionCard(
+            icon: Icons.account_balance,
+            title: "Culture",
+            content: knowledge!['culture'],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSectionCard({
+    required IconData icon,
+    required String title,
+    required String content,
+  }) {
+    return Card(
+      elevation: 3,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              "History & Culture",
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            Row(
+              children: [
+                Icon(icon, color: Colors.teal),
+                const SizedBox(width: 10),
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
             ),
 
             const SizedBox(height: 10),
 
-            Text("${knowledge!['history']}\n\n${knowledge!['culture']}"),
+            Text(
+              content,
+              style: const TextStyle(height: 1.5),
+            ),
           ],
         ),
       ),

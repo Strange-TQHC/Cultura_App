@@ -8,14 +8,13 @@ import '../../services/api/contribution_service.dart';
 import '../../services/api/place_match_service.dart';
 import 'add_contribution_screen.dart';
 import '../profile/profile_screen.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import '../auth/home_screen.dart';
 import '../../services/api/weather_service.dart';
 import 'package:geocoding/geocoding.dart';
 import '../../services/api/location_knowledge_service.dart';
 import 'history_screen.dart';
 import 'food_screen.dart';
 import 'language_screen.dart';
+import 'dart:ui';
 
 class TravelerHomeScreen extends StatefulWidget {
   const TravelerHomeScreen({super.key});
@@ -37,6 +36,7 @@ class _TravelerHomeScreenState extends State<TravelerHomeScreen> {
   Map<String, dynamic>? selectedPlace;
 
   Map<String, dynamic>? knowledge;
+  String? locationImage;
 
   String? aiDescription;
   bool isLoadingAI = false;
@@ -88,6 +88,7 @@ class _TravelerHomeScreenState extends State<TravelerHomeScreen> {
 
     setState(() {
       knowledge = data;
+      locationImage = data?['image_url'];
     });
   }
 
@@ -95,36 +96,49 @@ class _TravelerHomeScreenState extends State<TravelerHomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('CULTURA - Traveler'),
-        automaticallyImplyLeading: false,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.person),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => const ProfileScreen(),
+          title: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(height: 7),
+              Text(
+                'Cultura',
+                style: TextStyle(
+                  fontFamily: 'Cultura Font',
+                  fontWeight: FontWeight.bold,
+                  fontSize: 27,
+                  letterSpacing: 1.2,
+                  color: Theme.of(context).colorScheme.primary,
                 ),
-              );
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () async {
-              final prefs = await SharedPreferences.getInstance();
-              await prefs.clear();
+              ),
 
-              Navigator.pushAndRemoveUntil(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => const HomeScreen(),
+              const SizedBox(height: 2),
+
+              Text(
+                'TRAVELER MODE',
+                style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 3.5,
+                  color: Colors.grey[600],
                 ),
-                    (route) => false,
-              );
-            },
+              ),
+            ],
           ),
-        ]
+          automaticallyImplyLeading: false,
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.person),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const ProfileScreen(),
+                  ),
+                );
+              },
+            ),
+          ]
       ),
       body: getCurrentScreen(),
       bottomNavigationBar: BottomNavigationBar(
@@ -160,20 +174,115 @@ class _TravelerHomeScreenState extends State<TravelerHomeScreen> {
   }
 
   Widget _buildTopCard() {
-    return Card(
+    return Container(
       margin: const EdgeInsets.all(16),
-      child: ListTile(
-        leading: const Icon(Icons.location_on),
-        title: Text("Current Location"),
-        subtitle: Text(locationText),
-        trailing: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              TimeOfDay.now().format(context),
-            ),
-            Text(weatherText),
+      height: 200,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        image: locationImage != null && locationImage!.isNotEmpty
+            ? DecorationImage(
+          image: NetworkImage(locationImage!),
+          fit: BoxFit.cover,
+        )
+            : null,
+        gradient: locationImage == null || locationImage!.isEmpty
+            ? const LinearGradient(
+          colors: [
+            Colors.teal,
+            Colors.transparent,
           ],
+          begin: Alignment.bottomLeft,
+          end: Alignment.topRight,
+        )
+            : null,
+      ),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          color: Colors.black.withOpacity(0.3), // overlay
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            Row(
+              children: const [
+                Icon(Icons.location_on_outlined, color: Colors.white),
+                SizedBox(width: 5),
+                Text(
+                  "CURRENT LOCATION",
+                  style: TextStyle(
+                    color: Colors.white70,
+                    fontSize: 17,
+                    letterSpacing: 3,
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 5),
+
+            Text(
+              locationText,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 27,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 1,
+              ),
+            ),
+
+            const SizedBox(height: 10),
+
+            Row(
+              children: [
+                _buildCapsule(
+                  Icons.wb_sunny,
+                  weatherText,
+                ),
+                const SizedBox(width: 10),
+                _buildCapsule(
+                  Icons.access_time,
+                  TimeOfDay.now().format(context),
+                ),
+              ],
+            )
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCapsule(IconData icon, String text) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(20),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: Colors.white.withOpacity(0.2),
+              width: 0.25,
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, color: Colors.white, size: 16),
+              const SizedBox(width: 5),
+              Text(
+                text,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w300,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

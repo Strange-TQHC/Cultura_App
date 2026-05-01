@@ -67,10 +67,26 @@ class _PostLoginScreenState extends State<PostLoginScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('CULTURA'),
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 7),
+            Text(
+              'Cultura',
+              style: TextStyle(
+                fontFamily: 'Cultura Font',
+                fontWeight: FontWeight.bold,
+                fontSize: 27,
+                letterSpacing: 1.2,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+            ),
+          ],
+        ),
         automaticallyImplyLeading: false,
       ),
-      body: const Center(
+      body: const Center (
         child: CircularProgressIndicator(),
       ),
     );

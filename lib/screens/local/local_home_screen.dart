@@ -11,6 +11,18 @@ import '../../services/ai/tts_service.dart';
 import '../../services/api/contribution_service.dart';
 import '../../services/api/place_match_service.dart';
 import '../traveler/add_contribution_screen.dart';
+import '../traveler/history_screen.dart';
+import '../traveler/food_screen.dart';
+import '../traveler/language_screen.dart';
+import '../../services/api/location_knowledge_service.dart';
+import 'package:geocoding/geocoding.dart';
+import '../../services/api/places_service.dart';
+import '../../widgets/map/map_view.dart';
+import '../../services/api/contribution_service.dart';
+import '../../services/api/place_match_service.dart';
+import '../../services/ai/ai_service.dart';
+import '../../services/ai/tts_service.dart';
+import '../traveler/add_contribution_screen.dart';
 
 class LocalHomeScreen extends StatefulWidget {
   const LocalHomeScreen({super.key});
@@ -37,6 +49,10 @@ class _LocalHomeScreenState extends State<LocalHomeScreen> {
 
   List contributions = [];
 
+  int selectedIndex = 0;
+
+  Map<String, dynamic>? knowledge;
+
   @override
   void initState() {
     super.initState();
@@ -49,16 +65,25 @@ class _LocalHomeScreenState extends State<LocalHomeScreen> {
     double latValue = position.latitude;
     double lonValue = position.longitude;
 
+    final placemarks =
+    await placemarkFromCoordinates(latValue, lonValue);
+
+    String cityName = placemarks.first.locality ?? "Unknown";
+
     final weather = await WeatherService.getWeather(latValue, lonValue);
     final fetchedPlaces =
     await PlacesService.getNearbyPlaces(latValue, lonValue);
 
+    final knowledgeData =
+    await LocationKnowledgeService.getKnowledge(cityName);
+
     setState(() {
       lat = latValue;
       lon = lonValue;
-      locationText = "Lat: $latValue, Lng: $lonValue";
+      locationText = cityName;
       weatherText = weather;
       places = fetchedPlaces;
+      knowledge = knowledgeData;
     });
   }
 
@@ -97,32 +122,84 @@ class _LocalHomeScreenState extends State<LocalHomeScreen> {
             ),
           ]
       ),
-      body:SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              "You're at home",
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+      body: getCurrentScreen(),
+        bottomNavigationBar: BottomNavigationBar(
+          currentIndex: selectedIndex,
+          onTap: (index) {
+            setState(() {
+              selectedIndex = index;
+            });
+          },
+          items: const [
+            BottomNavigationBarItem(
+              icon: Icon(Icons.home),
+              label: "Home",
             ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.history_edu),
+              label: "Culture",
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.restaurant),
+              label: "Food",
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.language),
+              label: "Language",
+            ),
+          ],
+        ),
+    );
+  }
 
-            const SizedBox(height: 20),
+  Widget _buildTopCard() {
+    return Card(
+      margin: const EdgeInsets.all(16),
+      child: ListTile(
+        leading: const Icon(Icons.location_on),
+        title: Text("Current Location"),
+        subtitle: Text(locationText),
+        trailing: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              TimeOfDay.now().format(context),
+            ),
+            Text(weatherText),
+          ],
+        ),
+      ),
+    );
+  }
 
-            // TOP INFO CARD
-            _buildTopCard(),
+  Widget _buildExploreScreen() {
+    return SingleChildScrollView(
+    child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            "You're at home",
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          ),
 
-            const SizedBox(height: 20),
+          const SizedBox(height: 20),
 
-            lat == null
-                ? const CircularProgressIndicator()
-                : Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
+          // TOP INFO CARD
+          _buildTopCard(),
+
+          const SizedBox(height: 20),
+
+          lat == null
+              ? const CircularProgressIndicator()
+              : Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
                   "Explore Your Hometown",
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                      fontSize: 18, fontWeight: FontWeight.bold),
                 ),
 
                 const SizedBox(height: 10),
@@ -159,11 +236,13 @@ class _LocalHomeScreenState extends State<LocalHomeScreen> {
                           });
 
                           final placeId =
-                          await PlaceMatchService.findPlaceId(place['name']);
+                          await PlaceMatchService.findPlaceId(
+                              place['name']);
 
                           if (placeId != null) {
                             final fetched =
-                            await ContributionService.getContributions(placeId);
+                            await ContributionService.getContributions(
+                                placeId);
 
                             final desc = await AIService.getDescription(
                               place['name'],
@@ -211,137 +290,130 @@ class _LocalHomeScreenState extends State<LocalHomeScreen> {
                 ),
               ],
             ),
-            ),
+          ),
 
-            const SizedBox(height: 20),
+          const SizedBox(height: 20),
 
-            //Detail Panel UI
-            const SizedBox(height: 20),
+          //Detail Panel UI
+          const SizedBox(height: 20),
 
-            selectedPlace == null
-                ? const Text("Select a place to see details")
-                : Card(
-                    margin: const EdgeInsets.all(16),
-                    child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      selectedPlace!['name'],
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
+          selectedPlace == null
+              ? const Text("Select a place to see details")
+              : Card(
+            margin: const EdgeInsets.all(16),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    selectedPlace!['name'],
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+
+                  const SizedBox(height: 10),
+
+                  Text("Type: ${selectedPlace!['type']}"),
+
+                  const SizedBox(height: 10),
+
+                  Text(
+                    "Location: ${selectedPlace!['lat']}, ${selectedPlace!['lon']}",
+                  ),
+
+                  const SizedBox(height: 10),
+
+                  isLoadingAI
+                      ? const CircularProgressIndicator()
+                      : Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(aiDescription ?? "No description"),
+
+                      const SizedBox(height: 10),
+
+                      Row(
+                        children: [
+                          ElevatedButton.icon(
+                            onPressed: aiDescription == null
+                                ? null
+                                : () {
+                              TTSService.speak(aiDescription!);
+                            },
+                            icon: const Icon(Icons.volume_up),
+                            label: const Text("Read Aloud"),
+                          ),
+
+                          const SizedBox(width: 10),
+
+                          ElevatedButton.icon(
+                            onPressed: () {
+                              TTSService.stop();
+                            },
+                            icon: const Icon(Icons.stop),
+                            label: const Text("Stop"),
+                          ),
+                        ],
                       ),
-                    ),
+                    ],
+                  ),
 
-                    const SizedBox(height: 10),
+                  const SizedBox(height: 15),
 
-                    Text("Type: ${selectedPlace!['type']}"),
+                  const Text(
+                    "Local Insights:",
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
 
-                    const SizedBox(height: 10),
+                  ...contributions.map((c) {
+                    return Text("- ${c['content']}");
+                  }).toList(),
 
-                    Text(
-                      "Location: ${selectedPlace!['lat']}, ${selectedPlace!['lon']}",
-                    ),
+                  const SizedBox(height: 15),
 
-                    const SizedBox(height: 10),
+                  ///ADD CONTRIBUTION BUTTON
+                  ElevatedButton(
+                    onPressed: selectedPlace == null
+                        ? null
+                        : () async {
+                      final placeId =
+                      await PlaceMatchService.findPlaceId(
+                          selectedPlace!['name']);
 
-                    isLoadingAI
-                        ? const CircularProgressIndicator()
-                        : Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(aiDescription ?? "No description"),
-
-                        const SizedBox(height: 10),
-
-                        Row(
-                          children: [
-                            ElevatedButton.icon(
-                              onPressed: aiDescription == null
-                                  ? null
-                                  : () {
-                                TTSService.speak(aiDescription!);
-                              },
-                              icon: const Icon(Icons.volume_up),
-                              label: const Text("Read Aloud"),
-                            ),
-
-                            const SizedBox(width: 10),
-
-                            ElevatedButton.icon(
-                              onPressed: () {
-                                TTSService.stop();
-                              },
-                              icon: const Icon(Icons.stop),
-                              label: const Text("Stop"),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-
-                    const SizedBox(height: 15),
-
-                    const Text(
-                      "Local Insights:",
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-
-                    ...contributions.map((c) {
-                      return Text("- ${c['content']}");
-                    }).toList(),
-
-                    const SizedBox(height: 15),
-
-                    ///ADD CONTRIBUTION BUTTON
-                    ElevatedButton(
-                      onPressed: selectedPlace == null
-                          ? null
-                          : () async {
-                        final placeId =
-                        await PlaceMatchService.findPlaceId(selectedPlace!['name']);
-
-                        if (placeId != null) {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => AddContributionScreen(placeId: placeId),
-                            ),
-                          );
-                        }
-                      },
-                      child: const Text("Add Contribution"),
-                    ),
-                  ],
-                ),
+                      if (placeId != null) {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) =>
+                                AddContributionScreen(placeId: placeId),
+                          ),
+                        );
+                      }
+                    },
+                    child: const Text("Add Contribution"),
+                  ),
+                ],
               ),
-                 ),
-          ]
-        ),
-      ),
-    );
+            ),
+          ),
+        ]
+    ),
+  );
   }
 
-  Widget _buildTopCard() {
-    return Card(
-      margin: const EdgeInsets.all(16),
-      child: ListTile(
-        leading: const Icon(Icons.location_on),
-        title: Text("Current Location"),
-        subtitle: Text(locationText),
-        trailing: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              TimeOfDay.now().format(context),
-            ),
-            Text(weatherText),
-          ],
-        ),
-      ),
-    );
+  Widget getCurrentScreen() {
+  if (selectedIndex == 0) {
+    return _buildExploreScreen();
+  } else if (selectedIndex == 1) {
+    return HistoryScreen(knowledge: knowledge);
+  } else if (selectedIndex == 2) {
+    return FoodScreen(knowledge: knowledge);
+  } else {
+    return LanguageScreen(knowledge: knowledge);
   }
+}
 }
 

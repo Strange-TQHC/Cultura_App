@@ -13,11 +13,11 @@ class AddContributionService {
 
     final response = await http.post(
       ///Android Emulator
-      // Uri.parse('http://10.0.2.2:8000/api/add-contribution/'),
+      Uri.parse('http://10.0.2.2:8000/api/add-contribution/'),
       ///Isha
-      //Uri.parse('http://172.30.143.154:8000/api/add-contribution/'),
+      //Uri.parse('http://10.233.24.154:8000/api/add-contribution/'),
       ///JioFiber
-      Uri.parse('http://192.168.29.97:8000/api/add-contribution/'),
+      //Uri.parse('http://192.168.29.97:8000/api/add-contribution/'),
 
       headers: {
         'Content-Type': 'application/json',

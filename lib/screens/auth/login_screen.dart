@@ -43,11 +43,11 @@ class _LoginScreenState extends State<LoginScreen> {
             ElevatedButton(
               onPressed: () async {
                 ///Android Emulator
-                // final url = Uri.parse('http://10.0.2.2:8000/api/login/');
+                final url = Uri.parse('http://10.0.2.2:8000/api/login/');
                 ///Isha
-                //final url = Uri.parse('http://172.30.143.154:8000/api/login/');
+                //final url = Uri.parse('http://10.233.24.154:8000/api/login/');
                 ///JioFiber
-                final url = Uri.parse('http://192.168.29.97:8000/api/login/');
+                //final url = Uri.parse('http://192.168.29.97:8000/api/login/');
 
                 final response = await http.post(
                   url,

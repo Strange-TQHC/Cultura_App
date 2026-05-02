@@ -95,7 +95,10 @@ class _TravelerHomeScreenState extends State<TravelerHomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBody: true,
       appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
           title: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
@@ -126,49 +129,64 @@ class _TravelerHomeScreenState extends State<TravelerHomeScreen> {
             ],
           ),
           automaticallyImplyLeading: false,
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.person),
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const ProfileScreen(),
-                  ),
-                );
-              },
-            ),
-          ]
       ),
       body: getCurrentScreen(),
-      bottomNavigationBar: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed,
-        currentIndex: selectedIndex,
-        selectedItemColor: Colors.blue,
-        unselectedItemColor: Colors.grey,
-        onTap: (index) {
-          setState(() {
-            selectedIndex = index;
-          });
-        },
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.explore),
-            label: "Explore",
+      bottomNavigationBar: _buildFloatingNavBar(),
+    );
+  }
+
+  Widget _buildFloatingNavBar() {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 24, left: 20, right: 20),
+      height: 70,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(30),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.black.withOpacity(0.05),
+              borderRadius: BorderRadius.circular(30),
+              border: Border.all(color: Colors.white.withOpacity(0.2), width: 1),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _navItem(Icons.explore_outlined, Icons.explore, 0),
+                _navItem(Icons.history_edu_outlined, Icons.history_edu, 1),
+                _navItem(Icons.restaurant_outlined, Icons.restaurant, 2),
+                _navItem(Icons.language_outlined, Icons.language, 3),
+                _navItem(Icons.person_outline, Icons.person, 4), // Profile integrated here
+              ],
+            ),
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.history_edu),
-            label: "Culture",
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.restaurant),
-            label: "Food",
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.language),
-            label: "Language",
-          ),
-        ],
+        ),
+      ),
+    );
+  }
+
+  Widget _navItem(IconData icon, IconData activeIcon, int index) {
+    bool isSelected = selectedIndex == index;
+    return GestureDetector(
+      onTap: () {
+        if (index == 4) {
+          Navigator.push(context, MaterialPageRoute(builder: (_) => const ProfileScreen()));
+        } else {
+          setState(() => selectedIndex = index);
+        }
+      },
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 300),
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: isSelected ? Colors.blue.withOpacity(0.1) : Colors.transparent,
+          shape: BoxShape.circle,
+        ),
+        child: Icon(
+          isSelected ? activeIcon : icon,
+          color: isSelected ? Colors.blue : Colors.grey[700],
+          size: 26,
+        ),
       ),
     );
   }
@@ -290,6 +308,7 @@ class _TravelerHomeScreenState extends State<TravelerHomeScreen> {
 
   Widget _buildExploreScreen() {
     return SingleChildScrollView(
+      padding: const EdgeInsets.only(bottom: 100),
       child: Column(
         children: [
           // TOP INFO CARD
@@ -301,25 +320,28 @@ class _TravelerHomeScreenState extends State<TravelerHomeScreen> {
           lat == null
               ? const Center(child: CircularProgressIndicator())
               : Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
                   "Nearby Highlights",
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, letterSpacing: -0.5),
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: 15),
 
                 // MAP
-                SizedBox(
-                  height: 200,
-                  child: MapView(
-                    lat: lat!,
-                    lon: lon!,
-                    places: places,
-                    selectedLat: selectedLat,
-                    selectedLon: selectedLon,
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(24),
+                  child: SizedBox(
+                    height: 220,
+                    child: MapView(
+                      lat: lat ?? 0.0,
+                      lon: lon ?? 0.0,
+                      places: places,
+                      selectedLat: selectedLat,
+                      selectedLon: selectedLon,
+                    ),
                   ),
                 ),
 
@@ -327,85 +349,47 @@ class _TravelerHomeScreenState extends State<TravelerHomeScreen> {
 
                 // LIST
                 SizedBox(
-                  height: 120,
+                  height: 140,
                   child: ListView.builder(
                     scrollDirection: Axis.horizontal,
                     itemCount: places.length,
                     itemBuilder: (context, index) {
                       final place = places[index];
+                      bool isSelected = place['lat'] == selectedLat && place['lon'] == selectedLon;
 
                       return GestureDetector(
-                        onTap: () async {
-                          setState(() {
-                            selectedLat = place['lat'];
-                            selectedLon = place['lon'];
-                            selectedPlace = place;
-                            isLoadingAI = true;
-                            aiDescription = null;
-                            contributions = [];
-                          });
-
-                          // Match place with DB
-                          final placeId =
-                          await PlaceMatchService.findPlaceId(place['name']);
-
-                          if (placeId != null) {
-                            // Fetch contributions
-                            final fetchedContributions =
-                            await ContributionService.getContributions(
-                                placeId);
-
-                            // AI with real DB data
-                            final desc = await AIService.getDescription(
-                              place['name'],
-                              place['type'],
-                              fetchedContributions,
-                            );
-
-                            setState(() {
-                              contributions = fetchedContributions;
-                              aiDescription = desc;
-                              isLoadingAI = false;
-                            });
-                          } else {
-                            // fallback (no DB data)
-                            final desc = await AIService.getDescription(
-                              place['name'],
-                              place['type'],
-                              [],
-                            );
-
-                            setState(() {
-                              aiDescription = desc;
-                              isLoadingAI = false;
-                            });
-                          }
-                        },
-
-                        child: Card(
-                          margin: const EdgeInsets.symmetric(horizontal: 8),
-                          child: Container(
-                            width: 140,
-                            padding: const EdgeInsets.all(10),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Icons.place,
-                                  color: (place['lat'] == selectedLat &&
-                                      place['lon'] == selectedLon)
-                                      ? Colors.green
-                                      : Colors.blue,
-                                ),
-                                const SizedBox(height: 10),
-                                Text(
-                                  place['name'],
-                                  textAlign: TextAlign.center,
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ],
+                        onTap: () => _handlePlaceSelection(place),
+                        child: Container(
+                          width: 150,
+                          margin: const EdgeInsets.only(right: 12),
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: isSelected ? Colors.blue.withOpacity(0.05) : Colors.grey[100],
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                              color: isSelected ? Colors.blue.withOpacity(0.3) : Colors.transparent,
+                              width: 2,
                             ),
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              CircleAvatar(
+                                backgroundColor: isSelected ? Colors.blue : Colors.blue.withOpacity(0.1),
+                                child: Icon(Icons.place, color: isSelected ? Colors.white : Colors.blue),
+                              ),
+                              const SizedBox(height: 12),
+                              Text(
+                                place['name'],
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                                  fontSize: 13,
+                                ),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
                           ),
                         ),
                       );
@@ -413,116 +397,112 @@ class _TravelerHomeScreenState extends State<TravelerHomeScreen> {
                   ),
                 ),
 
-                //Detail Panel UI
-                const SizedBox(height: 20),
-
-                selectedPlace == null
-                    ? const Text("Select a place to see details")
-                    : Card(
-                  margin: const EdgeInsets.all(16),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          selectedPlace!['name'],
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-
-                        const SizedBox(height: 10),
-
-                        Text("Type: ${selectedPlace!['type']}"),
-
-                        const SizedBox(height: 10),
-
-                        Text(
-                          "Location: ${selectedPlace!['lat']}, ${selectedPlace!['lon']}",
-                        ),
-
-                        const SizedBox(height: 10),
-
-                        isLoadingAI
-                            ? const CircularProgressIndicator()
-                            : Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(aiDescription ?? "No description"),
-
-                            const SizedBox(height: 10),
-
-                            Row(
-                              children: [
-                                ElevatedButton.icon(
-                                  onPressed: aiDescription == null
-                                      ? null
-                                      : () {
-                                    TTSService.speak(aiDescription!);
-                                  },
-                                  icon: const Icon(Icons.volume_up),
-                                  label: const Text("Read Aloud"),
-                                ),
-
-                                const SizedBox(width: 10),
-
-                                ElevatedButton.icon(
-                                  onPressed: () {
-                                    TTSService.stop();
-                                  },
-                                  icon: const Icon(Icons.stop),
-                                  label: const Text("Stop"),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-
-                        const SizedBox(height: 15),
-
-                        const Text(
-                          "Local Insights:",
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-
-                        ...contributions.map((c) {
-                          return Text("- ${c['content']}");
-                        }).toList(),
-
-                        const SizedBox(height: 15),
-
-                        ElevatedButton(
-                          onPressed: selectedPlace == null
-                              ? null
-                              : () async {
-                            final placeId =
-                            await PlaceMatchService.findPlaceId(
-                                selectedPlace!['name']);
-
-                            if (placeId != null) {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) =>
-                                      AddContributionScreen(placeId: placeId),
-                                ),
-                              );
-                            }
-                          },
-                          child: const Text("Add Contribution"),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
+                const SizedBox(height: 25),
+                if (selectedPlace != null) _buildModernDetailPanel(),
               ],
             ),
           ),
         ],
       ),
     );
+  }
+
+  Widget _buildModernDetailPanel() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 20, offset: const Offset(0, 10))
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Text(
+                  selectedPlace!['name'],
+                  style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.blue.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Text(
+                  selectedPlace!['type'].toString().toUpperCase(),
+                  style: const TextStyle(color: Colors.blue, fontSize: 10, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 15),
+          isLoadingAI
+              ? const LinearProgressIndicator()
+              : Text(aiDescription ?? "Discovering details...", style: TextStyle(color: Colors.grey[800], height: 1.5)),
+
+          const SizedBox(height: 20),
+          Row(
+            children: [
+              Expanded(
+                child: ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.black,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                  ),
+                  onPressed: aiDescription == null ? null : () => TTSService.speak(aiDescription!),
+                  icon: const Icon(Icons.volume_up, size: 18),
+                  label: const Text("Listen"),
+                ),
+              ),
+              const SizedBox(width: 10),
+              IconButton(
+                onPressed: () => TTSService.stop(),
+                icon: const Icon(Icons.stop_circle_outlined),
+              )
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Abstracted logic for selection to keep the widget tree clean
+  Future<void> _handlePlaceSelection(Map<String, dynamic> place) async {
+    setState(() {
+      selectedLat = place['lat'];
+      selectedLon = place['lon'];
+      selectedPlace = place;
+      isLoadingAI = true;
+      aiDescription = null;
+      contributions = [];
+    });
+
+    final placeId = await PlaceMatchService.findPlaceId(place['name']);
+
+    if (placeId != null) {
+      final fetchedContributions = await ContributionService.getContributions(placeId);
+      final desc = await AIService.getDescription(place['name'], place['type'], fetchedContributions);
+      setState(() {
+        contributions = fetchedContributions;
+        aiDescription = desc;
+        isLoadingAI = false;
+      });
+    } else {
+      final desc = await AIService.getDescription(place['name'], place['type'], []);
+      setState(() {
+        aiDescription = desc;
+        isLoadingAI = false;
+      });
+    }
   }
 
   Widget getCurrentScreen() {

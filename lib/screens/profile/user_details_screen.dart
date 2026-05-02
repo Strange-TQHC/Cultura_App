@@ -75,11 +75,11 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
             ElevatedButton(
               onPressed: () async {
                 ///Android Emulator
-                // final url = Uri.parse('http://10.0.2.2:8000/api/signup/');
+                final url = Uri.parse('http://10.0.2.2:8000/api/signup/');
                 ///Isha
-                //final url = Uri.parse('http://172.30.143.154:8000/api/signup/');
+                //final url = Uri.parse('http://10.233.24.154:8000/api/signup/');
                 ///JioFiber
-                final url = Uri.parse('http://192.168.29.97:8000/api/signup/');
+                //final url = Uri.parse('http://192.168.29.97:8000/api/signup/');
 
                 final response = await http.post(
                   url,

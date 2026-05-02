@@ -43,6 +43,10 @@ class _LocalHomeScreenState extends State<LocalHomeScreen> {
 
   int selectedIndex = 0;
 
+  int? currentPlaceId;
+
+  bool isPlaying = false;
+
   Map<String, dynamic>? knowledge;
   String? locationImage;
 
@@ -409,94 +413,127 @@ class _LocalHomeScreenState extends State<LocalHomeScreen> {
     );
   }
 
+  // UI Helper: Detail Panel with the Add Contribution Button
   Widget _buildModernDetailPanel() {
     return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 20, offset: const Offset(0, 10))
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: Text(
-                  selectedPlace!['name'],
-                  style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-                ),
-              ),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue.withOpacity(0.1),
-                  foregroundColor: Colors.blue,
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                ),
-                onPressed: () async {
-                  final placeId = await PlaceMatchService.findPlaceId(selectedPlace!['name']);
-                  if (placeId != null) {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => AddContributionScreen(placeId: placeId)),
-                    );
-                  }
-                },
-                child: const Text("Contribute"),
-              ),
-            ],
-          ),
-          const SizedBox(height: 15),
-          isLoadingAI
-              ? const LinearProgressIndicator()
-              : Text(aiDescription ?? "No description found", style: TextStyle(color: Colors.grey[800], height: 1.5)),
-
-          const SizedBox(height: 20),
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedButton.icon(
-                  style: OutlinedButton.styleFrom(
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-                    padding: const EdgeInsets.symmetric(vertical: 12),
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: [
+            BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 20, offset: const Offset(0, 10))
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Text(
+                    selectedPlace!['name'],
+                    style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
                   ),
-                  onPressed: aiDescription == null ? null : () => TTSService.speak(aiDescription!),
-                  icon: const Icon(Icons.volume_up, size: 18),
-                  label: const Text("Read Aloud"),
                 ),
-              ),
-              const SizedBox(width: 10),
-              IconButton(
-                onPressed: () => TTSService.stop(),
-                icon: const Icon(Icons.stop_circle_outlined),
-              )
-            ],
-          ),
-          if (contributions.isNotEmpty) ...[
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 15),
-              child: Divider(),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.blue.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Text(
+                    selectedPlace!['type'].toString().toUpperCase(),
+                    style: const TextStyle(color: Colors.blue, fontSize: 10, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ],
             ),
-            const Text("Local Insights", style: TextStyle(fontWeight: FontWeight.bold)),
-            const SizedBox(height: 10),
-            ...contributions.take(3).map((c) => Padding(
-              padding: const EdgeInsets.only(bottom: 8.0),
-              child: Row(
-                children: [
-                  const Icon(Icons.auto_awesome, size: 14, color: Colors.orange),
-                  const SizedBox(width: 8),
-                  Expanded(child: Text(c['content'], style: const TextStyle(fontSize: 13))),
-                ],
-              ),
-            )),
-          ]
-        ],
-      ),
+            const SizedBox(height: 15),
+            isLoadingAI
+                ? const LinearProgressIndicator()
+                : Text(aiDescription ?? "Discovering details...", style: TextStyle(color: Colors.grey[800], height: 1.5)),
+            const SizedBox(height: 20),
+            // AUDIO & CONTRIBUTION CONTROLS
+            Row(
+              children: [
+                // PLAY / PAUSE BUTTON
+                GestureDetector(
+                  onTap: () {
+                    if (aiDescription != null) {
+                      setState(() {
+                        if (isPlaying) {
+                          TTSService.stop();
+                          isPlaying = false;
+                        } else {
+                          TTSService.speak(aiDescription!);
+                          isPlaying = true;
+                        }
+                      });
+                    }
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.blue,
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    child: Icon(
+                      isPlaying ? Icons.pause : Icons.play_arrow,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+
+                // STOP BUTTON
+                IconButton(
+                  onPressed: () {
+                    TTSService.stop();
+                    setState(() => isPlaying = false);
+                  },
+                  icon: const Icon(Icons.stop_rounded, color: Colors.redAccent),
+                  style: IconButton.styleFrom(
+                    backgroundColor: Colors.redAccent.withOpacity(0.1),
+                  ),
+                ),
+
+                const Spacer(),
+
+                // CONTRIBUTE BUTTON
+                ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.black,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                  ),
+                  onPressed: selectedPlace == null
+                      ? null
+                      : () async {
+                    final placeId =
+                    await PlaceMatchService.findPlaceId(
+                        selectedPlace!['name']);
+
+                    if (placeId != null) {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) =>
+                              AddContributionScreen(placeId: placeId),
+                        ),
+                      );
+                    }
+                  },
+                  icon: const Icon(Icons.add, size: 18),
+                  label: const Text("Contribute"),
+                ),
+              ],
+            ),
+          ],
+        )
     );
   }
 

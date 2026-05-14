@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'post_login_screen.dart';
+import '../../services/config.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -147,12 +148,7 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> _handleLogin() async {
     setState(() => isLoading = true);
 
-    ///Android Emulator
-    //final url = Uri.parse('http://10.0.2.2:8000/api/login/');
-    ///Isha
-    //final url = Uri.parse('http://10.233.24.154:8000/api/login/');
-    ///JioFiber
-    final url = Uri.parse('http://192.168.29.97:8000/api/login/');
+    final url = Uri.parse('${ApiConfig.baseUrl}/login/');
 
     try {
       final response = await http.post(

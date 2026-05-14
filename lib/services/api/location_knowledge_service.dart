@@ -1,15 +1,11 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import '../config.dart';
 
 class LocationKnowledgeService {
   static Future<Map<String, dynamic>?> getKnowledge(String city) async {
     final response = await http.get(
-      ///Android Emulator
-      //Uri.parse('http://10.0.2.2:8000/api/location-knowledge/?city=$city'),
-      ///Isha
-      //Uri.parse('http://10.233.24.154:8000/api/location-knowledge/?city=$city'),
-      ///JioFiber
-      Uri.parse('http://192.168.29.97:8000/api/location-knowledge/?city=$city'),
+      Uri.parse('${ApiConfig.baseUrl}/location-knowledge/?city=$city'),
     );
 
     if (response.statusCode == 200) {

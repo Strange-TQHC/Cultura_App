@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import '../config.dart';
 
 class AddContributionService {
   static Future<bool> addContribution({
@@ -12,13 +13,7 @@ class AddContributionService {
     final token = prefs.getString('token');
 
     final response = await http.post(
-      ///Android Emulator
-      //Uri.parse('http://10.0.2.2:8000/api/add-contribution/'),
-      ///Isha
-      //Uri.parse('http://10.233.24.154:8000/api/add-contribution/'),
-      ///JioFiber
-      Uri.parse('http://192.168.29.97:8000/api/add-contribution/'),
-
+      Uri.parse('${ApiConfig.baseUrl}/add-contribution/'),
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Token $token',

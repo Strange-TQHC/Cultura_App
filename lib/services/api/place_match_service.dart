@@ -1,18 +1,13 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import '../config.dart';
 
 class PlaceMatchService {
   static Future<int?> findPlaceId(String name) async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('token');
-
-    ///Android Emulator
-    //final url = Uri.parse('http://10.0.2.2:8000/api/find-place/?name=$name');
-    ///Isha
-    //final url = Uri.parse('http://10.233.24.154:8000/api/find-place/?name=$name');
-    ///JioFiber
-    final url = Uri.parse('http://192.168.29.97:8000/api/find-place/?name=$name');
+    final url = Uri.parse('${ApiConfig.baseUrl}/find-place/?name=$name');
 
     final response = await http.get(
       url,

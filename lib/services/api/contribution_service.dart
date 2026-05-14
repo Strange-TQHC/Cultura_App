@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import '../config.dart';
 
 class ContributionService {
   static Future<List<dynamic>> getContributions(int placeId) async {
@@ -8,13 +9,7 @@ class ContributionService {
     final token = prefs.getString('token');
 
     final response = await http.get(
-      ///Android Emulator
-      //Uri.parse('http://10.0.2.2:8000/api/contributions/$placeId/'),
-      ///Isha
-      //Uri.parse('http://10.233.24.154:8000/api/contributions/$placeId/'),
-      ///JioFiber
-      Uri.parse('http://192.168.29.97:8000/api/contributions/$placeId/'),
-
+      Uri.parse('${ApiConfig.baseUrl}/contributions/$placeId/'),
       headers: {
         'Authorization': 'Token $token',
       },
